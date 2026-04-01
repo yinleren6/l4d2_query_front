@@ -1,0 +1,51 @@
+文件夹 PATH 列表
+卷序列号为 00000177 388A:6621
+C:\USERS\MISAKA\DESKTOP\SOURCE\PROJECTS\DASHBOARD-REACT-TS-VITE\DASHBOARD\SRC
+|   App.css
+|   App.tsx
+|   index.css
+|   main.tsx
+|   vite-env.d.ts
+|   
++---api
+|       request.ts
+|       
++---assets
+|       hero.png
+|       react.svg
+|       vite.svg
+|       
++---components
+|   |   ProtectedRoute.tsx
+|   |   
+|   +---tabs
+|   |       AppVersionTab.tsx
+|   |       ConfigPage.tsx
+|   |       DashboardPage.tsx
+|   |       LoginPage.tsx
+|   |       OverviewTab.tsx
+|   |       ServerConfigTab.tsx
+|   |       WhitelistTab.tsx
+|   |       
+|   \---ui
+|           alert.tsx
+|           button.tsx
+|           card.tsx
+|           input.tsx
+|           separator.tsx
+|           sonner.tsx
+|           tabs.tsx
+|           
++---layout
+|       MainLayout.tsx
+|       
++---lib
+|       utils.ts
+|       
++---pages
++---store
+|       authStore.ts
+|       
+\---types
+        index.ts
+        

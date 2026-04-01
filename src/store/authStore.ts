@@ -22,5 +22,5 @@ export const useAuthStore = create<AuthState>((set) => ({
         localStorage.clear()
         set({ user: null })
         window.location.href = '/login'
-    }
+    },
 }))

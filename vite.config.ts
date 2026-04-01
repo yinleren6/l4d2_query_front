@@ -13,4 +13,12 @@ export default defineConfig({
             '@': path.resolve(__dirname, './src'),
         },
     },
+    server: {
+        proxy: {
+            '/api': {
+                target: 'https://version.us.ci',  // 后端地址
+                changeOrigin: true,
+            },
+        },
+    },
 })
