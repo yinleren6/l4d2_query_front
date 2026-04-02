@@ -6,40 +6,40 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card } from '@/components/ui/card'
 
-
+import { toast } from 'sonner'
+import axios from 'axios';
 export default function LoginPage() {
+
   const [id, setId] = useState('')
-  const [pwd, setPwd] = useState('')
+  const [password, setPwd] = useState('')
+
   const [loading, setLoading] = useState(false)
   const navigate = useNavigate()
   const { setUser } = useAuthStore()
-  // 定义响应类型
-  interface LoginResponse {
-    token: string
-    userID: string
-  }
-  const login = async () => {
-    if (!id.trim() || !pwd.trim()) {
-      alert('请输入账号和密码')
-      return
-    }
-    setLoading(true)
-    try {
 
-        // 在请求时指定类型
-        const { data } = await request.post<LoginResponse>('/api/login', {
-          id: id.trim(),
-          token: pwd.trim(),
-        })
-        setUser({ id: data.userID, token: data.token })
-      navigate('/')
-    } catch (err: any) {
-      const errorMsg = err.response?.data?.error || '登录失败，请检查账号密码'
-      alert(`登录失败: ${errorMsg}`)
-    } finally {
-      setLoading(false)
+  const login = async () => {
+    if (!id.trim() || !password.trim()) {
+        toast.error('请输入账号和密码');
+        return;
     }
-  }
+    setLoading(true);
+    try {
+        const { data } = await request.post<{ userID: string, token: string  }>('/api/login', {
+            userID: id.trim(),
+            Password: password.trim(),
+        });
+        setUser({ id: data.userID, token: data.token });
+        navigate('/');
+    } catch (err: unknown) {
+        let errorMsg = '登录失败，请检查账号密码';
+        if (axios.isAxiosError(err) && err.response?.data?.error) {
+            errorMsg = err.response.data.error;
+        }
+        toast.error(`${errorMsg}`);
+    } finally {
+        setLoading(false);
+    }
+};
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-slate-100 dark:bg-slate-900">
@@ -54,12 +54,13 @@ export default function LoginPage() {
           />
           <Input
             type="password"
-            value={pwd}
+            value={password}
             onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPwd(e.target.value)}
             placeholder="密码"
             disabled={loading}
+            onKeyDown={(e) => e.key === 'Enter' && login()} // 回车登录
           />
-          <Button className="w-full" onClick={login} disabled={loading}>
+          <Button className="w-full" onClick={( )=>{login( )}} disabled={loading} type="button">
             {loading ? '登录中...' : '登录'}
           </Button>
         </div>

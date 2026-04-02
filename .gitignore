@@ -22,3 +22,8 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+*.txt
+tsconfig.app.tsbuildinfo
+Caddyfile
+.env.development
+.env

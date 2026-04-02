@@ -16,7 +16,7 @@ export default defineConfig({
     server: {
         proxy: {
             '/api': {
-                target: 'https://version.us.ci',  // 后端地址
+                target: process.env.VITE_API_PROXY_TARGET || 'http://localhost:5173',// 后端地址
                 changeOrigin: true,
             },
         },

@@ -1,7 +1,22 @@
+// @/types/index.ts
+import type { JSONSchema7 } from 'json-schema'
+
+// 直接让FormSchema继承JSONSchema7，完美兼容
+export type FormSchema = JSONSchema7
+
+
+// 可在 @/types/index.ts 中扩展
+// export interface FormSchema {
+//     type: string
+//     properties: Record<string, any> // 可根据实际 Schema 结构细化
+//     required?: string[]
+// }
+
 // 用户类型
+
 export interface User {
     id: string
-    token: string
+    token: string   // 存储 JWT
 }
 
 // 服务器配置类型
@@ -25,8 +40,9 @@ export interface AppVersionFormData {
 }
 
 // 白名单类型
+// 白名单类型（对应后端 /api/admin/groups 返回）
 export interface WhitelistItem {
-    user_id: string
+    group_id: string   // 原 user_id
     added_at: string
     enabled: boolean
 }
@@ -42,8 +58,8 @@ export interface OverviewStats {
 }
 
 export interface DailyStat {
-    date: string
-    users: number
-    events: number
+    date: string;
+    users: number;      // 活跃用户数
+    events: number;     // 请求总数
 }
 

@@ -1,31 +1,41 @@
 import axios from 'axios'
-
-const API_BASE_URL = import.meta.env.DEV ? '' : 'https://version.us.ci'
+import { toast } from 'sonner'
 
 const request = axios.create({
-    baseURL: API_BASE_URL,
-    headers: { 'Content-Type': 'application/json' },
-    timeout: 15000,
+    baseURL: "",
+    timeout: 10000,
 })
 
-// 请求拦截：自动添加 Bearer Token
-request.interceptors.request.use((config) => {
-    const token = localStorage.getItem('token')
-    if (token) {
-        config.headers.Authorization = `Bearer ${token}`
-    }
-    return config
-})
+// 请求拦截器：自动携带 Token
+request.interceptors.request.use(
+    (config) => {
+        const userStr = localStorage.getItem('user')
+        if (userStr) {
+            try {
+                const user = JSON.parse(userStr)
+                if (user && user.token) {
+                    config.headers.Authorization = `Bearer ${user.token}`
+                }
+            } catch (e) {
+                console.error('解析用户信息失败', e)
+            }
+        }
+        return config
+    },
+    (error) => Promise.reject(error)
+)
 
-// 响应拦截：401 自动跳登录
+// 响应拦截器：统一处理错误
 request.interceptors.response.use(
     (res) => res,
-    (err) => {
-        if (err.response?.status === 401) {
-            localStorage.clear()
+    (error) => {
+        if (error.response?.status === 401) {
+            toast.error('登录已过期，请重新登录')
+            // 清除用户信息
+            localStorage.removeItem('user')
             window.location.href = '/login'
         }
-        return Promise.reject(err)
+        return Promise.reject(error)
     }
 )
 

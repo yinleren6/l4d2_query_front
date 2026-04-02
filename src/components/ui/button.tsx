@@ -46,6 +46,7 @@ function Button({
   variant = "default",
   size = "default",
   asChild = false,
+  type = "button", // 👈 1. 新增：设置默认 type 为 "button"
   ...props
 }: React.ComponentProps<"button"> &
   VariantProps<typeof buttonVariants> & {
@@ -56,6 +57,7 @@ const Comp = asChild ? Slot : "button"
 
   return (
     <Comp
+    type={type} // 👈 2. 新增：把 type 传递给渲染的元素
       data-slot="button"
       data-variant={variant}
       data-size={size}
@@ -65,4 +67,5 @@ const Comp = asChild ? Slot : "button"
   )
 }
 
-export { Button, buttonVariants }
+export { Button   }
+// export { Button, buttonVariants }
