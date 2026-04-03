@@ -1,7 +1,7 @@
 @import 'tailwindcss';
 @import 'tw-animate-css';
 @import '@fontsource-variable/geist';
-@source "../node_modules/@rjsf/shadcn";
+@source "../node_modules/@rjsf/shadcn"; /* 确保路径指向正确 */
 @custom-variant dark (&:is(.dark *));
 
 @layer base {
@@ -9,7 +9,8 @@
         margin: 0;
         padding: 0;
         box-sizing: border-box;
-        @apply border-border outline-ring/50;
+        @apply border-border; /* 假设 border-border 由 shadcn 插件提供 */
+        /* 移除 outline-ring/50，因为 outline 不支持 /50 透明度语法，且全局轮廓可能影响焦点 */
     }
 
     body {

@@ -7,79 +7,109 @@ import { Button } from '@/components/ui/button'
 import { useAuthStore } from '@/store/authStore'
 import { useNavigate } from 'react-router-dom'
 import { LogOut } from 'lucide-react'
+import { useEffect, useState } from 'react'
 
 export default function DashboardPage() {
-  const { logout, user } = useAuthStore()
-  const navigate = useNavigate()
+    const { logout, user } = useAuthStore()
+    const navigate = useNavigate()
+    const [activeTab, setActiveTab] = useState<string>('')
 
-  // 定义Tab配置：value=标识，label=显示文本，component=对应组件，roles=可访问角色
-  const tabConfig = [
-    { value: 'overview', label: '统计总览', component: <OverviewTab />, roles: ['admin'] },
-    { value: 'server', label: '服务器配置', component: <ServerConfigTab />, roles: ['admin', 'user'] },
-    { value: 'version', label: 'App版本配置', component: <AppVersionTab />, roles: ['admin'] },
-    { value: 'whitelist', label: '用户白名单', component: <WhitelistTab />, roles: ['admin'] },
-  ]
+    // 定义Tab配置
+    const tabConfig = [
+        {
+            value: 'overview',
+            label: '统计总览',
+            component: <OverviewTab />,
+            roles: ['admin'],
+        },
+        {
+            value: 'server',
+            label: '服务器配置',
+            component: <ServerConfigTab />,
+            roles: ['admin', 'user'],
+        },
+        {
+            value: 'version',
+            label: 'App版本配置',
+            component: <AppVersionTab />,
+            roles: ['admin'],
+        },
+        {
+            value: 'whitelist',
+            label: '用户白名单',
+            component: <WhitelistTab />,
+            roles: ['admin'],
+        },
+    ]
 
-  // 获取用户角色（默认普通用户）
-  const userRole = user?.role || 'user'
-  // 过滤当前用户可访问的Tab
-  const accessibleTabs = tabConfig.filter(tab => tab.roles.includes(userRole))
-  // 设置默认激活的Tab（取第一个可访问的Tab）
-  const defaultTabValue = accessibleTabs.length > 0 ? accessibleTabs[0].value : 'server'
+    const userRole = user?.role || 'user'
+    const accessibleTabs = tabConfig.filter((tab) =>
+        tab.roles.includes(userRole),
+    )
 
-  const handleLogout = () => {
-    logout()
-    navigate('/login')
-  }
+    // 设置默认激活的Tab（只在首次或accessibleTabs变化时更新）
+    useEffect(() => {
+        if (accessibleTabs.length > 0 && !activeTab) {
+            setActiveTab(accessibleTabs[0].value)
+        } else if (accessibleTabs.length === 0) {
+            // 无任何权限，登出并提示
+            logout()
+            navigate('/login', { replace: true })
+        }
+    }, [accessibleTabs, activeTab, logout, navigate])
 
-  return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100">
-      {/* 顶部导航栏 */}
-      <header className="bg-white dark:bg-slate-800 border-b px-6 py-3 flex justify-between items-center sticky top-0 z-10">
-        <h1 className="text-xl font-bold text-purple-600 dark:text-purple-400">控制面板</h1>
-        <Button
-          variant="destructive"
-          size="sm"
-          onClick={handleLogout}
-        >
-          <LogOut />  退出登录
-        </Button>
-      </header>
+    const handleLogout = () => {
+        logout()
+        navigate('/login', { replace: true })
+    }
 
-      {/* 主内容区：固定居中容器 */}
-      <main className="container mx-auto p-4 sm:p-6 max-w-7xl">
-        {/* 核心Tabs组件：显式指定水平布局，确保上下结构 */}
-        <Tabs
-          defaultValue={defaultTabValue}
-          orientation="horizontal" // 显式声明水平布局，更稳妥哦嘻嘻~
-          className="w-full flex flex-col gap-6"
-        >
-          {/* 修复TabsList：用flex布局替代动态grid，解决Tailwind动态类名失效问题 */}
-          <TabsList className="w-full flex bg-gray-100 dark:bg-slate-700 rounded-lg p-1 gap-1">
-            {/* 动态渲染可访问的Tab Trigger，给每个加flex-1平分宽度 */}
-            {accessibleTabs.map(tab => (
-              <TabsTrigger
-                key={tab.value}
-                value={tab.value}
-                className="flex-1 py-2 rounded-md transition-all data-[state=active]:bg-white dark:data-[state=active]:bg-slate-600 data-[state=active]:shadow-sm"
-              >
-                {tab.label}
-              </TabsTrigger>
-            ))}
-          </TabsList>
+    // 无权限时显示加载或直接重定向（上面 useEffect 已处理，这里作为兜底）
+    if (accessibleTabs.length === 0) {
+        return null // 或加载中，实际会被重定向
+    }
 
-          {/* Tab内容区：动态渲染可访问的Tab Content */}
-          {accessibleTabs.map(tab => (
-            <TabsContent
-              key={tab.value}
-              value={tab.value}
-              className="m-0 p-0 focus-visible:outline-none focus-visible:ring-0"
-            >
-              {tab.component}
-            </TabsContent>
-          ))}
-        </Tabs>
-      </main>
-    </div>
-  )
+    return (
+        <div className="min-h-screen bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100">
+            <header className="bg-white dark:bg-slate-800 border-b px-6 py-3 flex justify-between items-center sticky top-0 z-10">
+                <h1 className="text-xl font-bold text-purple-600 dark:text-purple-400">
+                    控制面板
+                </h1>
+                <Button variant="destructive" size="sm" onClick={handleLogout}>
+                    <LogOut className="mr-2 h-4 w-4" />
+                    退出登录
+                </Button>
+            </header>
+
+            <main className="container mx-auto p-4 sm:p-6 max-w-7xl">
+                <Tabs
+                    value={activeTab}
+                    onValueChange={setActiveTab}
+                    orientation="horizontal"
+                    className="w-full flex flex-col gap-6"
+                >
+                    <TabsList className="w-full flex bg-gray-100 dark:bg-slate-700 rounded-lg p-1 gap-1">
+                        {accessibleTabs.map((tab) => (
+                            <TabsTrigger
+                                key={tab.value}
+                                value={tab.value}
+                                className="flex-1 py-2 rounded-md transition-all data-[state=active]:bg-white dark:data-[state=active]:bg-slate-600 data-[state=active]:shadow-sm"
+                            >
+                                {tab.label}
+                            </TabsTrigger>
+                        ))}
+                    </TabsList>
+
+                    {accessibleTabs.map((tab) => (
+                        <TabsContent
+                            key={tab.value}
+                            value={tab.value}
+                            className="m-0 p-0 focus-visible:outline-none focus-visible:ring-0"
+                        >
+                            {tab.component}
+                        </TabsContent>
+                    ))}
+                </Tabs>
+            </main>
+        </div>
+    )
 }

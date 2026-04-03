@@ -1,40 +1,26 @@
+import { lazy, Suspense } from 'react'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
-// import LoginPage from '@/pages/LoginPage'
-import DashboardPage from '@/pages/DashboardPage'
-import ProtectedRoute from '@/components/ProtectedRoute'
-import { ThemeProvider } from 'next-themes';
-import { Toaster } from '@/components/ui/sonner';
-// import { Theme } from "@radix-ui/themes";
-import AdminLoginPage from '@/pages/AdminLoginPage'
-import NormalLoginPage from '@/pages/NormalLoginPage'
 
-// import TestForm from '@/pages/TestForm';
+// 懒加载页面组件
+const DashboardPage = lazy(() => import('@/pages/DashboardPage'))
+const AdminLoginPage = lazy(() => import('@/pages/AdminLoginPage'))
+const NormalLoginPage = lazy(() => import('@/pages/NormalLoginPage'))
+const NotFound = lazy(() => import('@/pages/NotFound'))
+
+// 加载中 fallback
+const PageLoading = () => <div className="p-8 text-center">加载中...</div>
 
 export default function App() {
-  return (
-    <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-      <BrowserRouter>
-      <Toaster />
-      <Routes>
-        {/* <Route path="/login" element={<LoginPage />} /> */}
-
-          {/* <Route path="/test-form" element={<TestForm />} /> */}
-          <Route path="/manage" element={<AdminLoginPage />} />
-          <Route path="/login" element={<NormalLoginPage />} />
-
-
-
-          <Route
-            path="/*"
-            element={
-              <ProtectedRoute>
-                <DashboardPage />
-              </ProtectedRoute>
-              }
-      />
-      </Routes>
-      </BrowserRouter>
-    </ThemeProvider>
-  )
+    return (
+        <BrowserRouter>
+            <Suspense fallback={<PageLoading />}>
+                <Routes>
+                    <Route path="/manage" element={<AdminLoginPage />} />
+                    <Route path="/login" element={<NormalLoginPage />} />
+                    <Route path="/" element={<DashboardPage />} />
+                    <Route path="*" element={<NotFound />} />
+                </Routes>
+            </Suspense>
+        </BrowserRouter>
+    )
 }
-
