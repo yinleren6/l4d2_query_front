@@ -17,6 +17,7 @@ export type FormSchema = JSONSchema7
 export interface User {
     id: string
     token: string   // 存储 JWT
+    role: string
 }
 
 // 服务器配置类型
