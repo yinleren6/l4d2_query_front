@@ -23,13 +23,3 @@ export const deepTrim = (obj: any): any => {
 export const isEqual = (obj1: any, obj2: any): boolean => {
     return JSON.stringify(obj1) === JSON.stringify(obj2)
 }
-export const formatTime = () => {
-    const now = new Date()
-    const pad = (num: number) => num.toString().padStart(2, '0')
-    const year = pad(now.getFullYear() % 100)
-    const month = pad(now.getMonth() + 1)
-    const day = pad(now.getDate())
-    const hour = pad(now.getHours())
-    const minute = pad(now.getMinutes())
-    return year + month + day + hour + minute
-}

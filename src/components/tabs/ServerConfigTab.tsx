@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { ServerFormData, FormSchema } from '@/types'
 import { toast } from 'sonner'
-import { deepTrim, isEqual, formatTime } from '@/lib/utils'
+import { deepTrim, isEqual } from '@/lib/utils'
 
 export default function ServerConfigTab() {
     const [schema, setSchema] = useState<FormSchema | null>(null)
@@ -24,7 +24,7 @@ export default function ServerConfigTab() {
     const getDefaultConfig = useCallback((): ServerFormData => {
         return {
             version: 0,
-            last_update: formatTime(),
+            last_update: 0,
             server_list: [],
         } as unknown as ServerFormData
     }, [])
@@ -70,7 +70,6 @@ export default function ServerConfigTab() {
     const mountedRef = useRef(true)
     useEffect(() => {
         mountedRef.current = true
-
         const controller = new AbortController()
         fetchData(controller.signal)
         return () => {
@@ -93,8 +92,8 @@ export default function ServerConfigTab() {
         // 关键：强制赋值必填中文字段
         const finalData = {
             ...trimmedData,
-            version: trimmedData['version'] || '0',
-            last_update: formatTime(),
+            version: trimmedData['version'] || 0,
+            last_update: 0,
             server_list: trimmedData['server_list'] || [],
         }
 

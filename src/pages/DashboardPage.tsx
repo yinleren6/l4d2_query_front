@@ -8,9 +8,10 @@ import OverviewTab from '@/components/tabs/OverviewTab'
 import ServerConfigTab from '@/components/tabs/ServerConfigTab'
 import AppVersionTab from '@/components/tabs/AppVersionTab'
 import WhitelistTab from '@/components/tabs/WhitelistTab'
+import ServerInfoTab from '@/components/tabs/ServerInfoTab'
 import Sidebar, { MenuItem } from '@/components/layout/Sidebar'
 import { LayoutDashboard, Server, Database, Users } from 'lucide-react'
-
+import { Server as ServerIcon } from 'lucide-react' // 新增导入
 export default function DashboardPage() {
     const { logout, user } = useAuthStore()
     const navigate = useNavigate()
@@ -26,7 +27,7 @@ export default function DashboardPage() {
             roles: ['admin'],
         },
         {
-            value: 'server',
+            value: 'server-config',
             label: '服务器配置',
             icon: <Server className="h-4 w-4" />,
             roles: ['admin', 'user'],
@@ -42,6 +43,12 @@ export default function DashboardPage() {
             label: '用户白名单',
             icon: <Users className="h-4 w-4" />,
             roles: ['admin'],
+        },
+        {
+            value: 'server-info', // 新页面标识
+            label: '服务器信息',
+            icon: <ServerIcon className="h-4 w-4" />,
+            roles: ['admin'], // 只有 admin 可访问
         },
     ]
 
@@ -74,12 +81,14 @@ export default function DashboardPage() {
         switch (activeTab) {
             case 'overview':
                 return <OverviewTab />
-            case 'server':
+            case 'server-config':
                 return <ServerConfigTab />
             case 'version':
                 return <AppVersionTab />
             case 'whitelist':
                 return <WhitelistTab />
+            case 'server-info': // 新分支
+                return <ServerInfoTab />
             default:
                 return null
         }

@@ -51,7 +51,7 @@ export default function AdminLoginPage() {
 
             setUser({ id: data.userID, token: data.token, role: data.role })
             toast.success('管理员登录成功')
-            navigate('/')
+            navigate('/dashboard/overview')
         } catch (err) {
             if (axios.isCancel(err) || (err as Error).name === 'AbortError') {
                 return

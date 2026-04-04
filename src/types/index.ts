@@ -18,8 +18,8 @@ export interface ServerItem {
 }
 
 export interface ServerFormData {
-    version: string
-    last_update: string
+    version: number
+    last_update: number
     changelog: string
     server_list: ServerItem[]
 }
@@ -28,7 +28,7 @@ export interface ServerFormData {
 export interface AppVersionFormData {
     app_version: string
     download_url: string
-    last_update: string
+    last_update: number
     changelog: string
 }
 

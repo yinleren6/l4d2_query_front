@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { AppVersionFormData, FormSchema } from '@/types'
 import { toast } from 'sonner'
-import { deepTrim, isEqual, formatTime } from '@/lib/utils'
+import { deepTrim, isEqual } from '@/lib/utils'
 
 // 深度比较两个对象（内容是否相等）
 
@@ -42,7 +42,7 @@ export default function AppVersionTab() {
                 : {
                       app_version: '0.0.0',
                       download_url: '',
-                      last_update: '',
+                      last_update: 0,
                       changelog: '',
                   }
             setFormData(configData)
@@ -89,7 +89,7 @@ export default function AppVersionTab() {
             ...trimmedData,
             app_version: trimmedData['app_version'] || '0.0.0',
             download_url: trimmedData['download_url'] || '',
-            last_update: formatTime(),
+            last_update: 0,
             changelog: trimmedData['changelog'] || '',
         }
 
