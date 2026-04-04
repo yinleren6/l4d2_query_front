@@ -1,4 +1,4 @@
-// pages/AdminLoginPage.tsx
+// src/pages/AdminLoginPage.tsx
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuthStore } from '@/store/authStore'
@@ -12,8 +12,9 @@ export default function AdminLoginPage() {
     const navigate = useNavigate()
     const { setUser } = useAuthStore()
     const abortControllerRef = useRef<AbortController | null>(null)
-
+    const mountedRef = useRef(true)
     useEffect(() => {
+        mountedRef.current = true
         return () => {
             abortControllerRef.current?.abort()
         }

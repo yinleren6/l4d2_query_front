@@ -1,3 +1,4 @@
+// src/components/tabs/AppVersionTab.tsx
 import { useState, useEffect, useCallback, useRef } from 'react'
 import Form from '@rjsf/shadcn'
 import validator from '@rjsf/validator-ajv8'
@@ -6,29 +7,9 @@ import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { AppVersionFormData, FormSchema } from '@/types'
 import { toast } from 'sonner'
-
-// 深度去除对象中所有字符串的首尾空格
-const deepTrim = (obj: any): any => {
-    if (typeof obj === 'string') {
-        return obj.trim()
-    }
-    if (Array.isArray(obj)) {
-        return obj.map(deepTrim)
-    }
-    if (obj !== null && typeof obj === 'object') {
-        const trimmedObj: any = {}
-        for (const key in obj) {
-            trimmedObj[key] = deepTrim(obj[key])
-        }
-        return trimmedObj
-    }
-    return obj
-}
+import { deepTrim, isEqual, formatTime } from '@/lib/utils'
 
 // 深度比较两个对象（内容是否相等）
-const isEqual = (obj1: any, obj2: any): boolean => {
-    return JSON.stringify(obj1) === JSON.stringify(obj2)
-}
 
 export default function AppVersionTab() {
     const [schema, setSchema] = useState<FormSchema | null>(null)
@@ -45,16 +26,28 @@ export default function AppVersionTab() {
 
     const loadData = useCallback(async (signal?: AbortSignal) => {
         try {
+            if (!mountedRef.current) return
             setLoading(true)
             setError('')
             const [schemaRes, dataRes] = await Promise.all([
-                request.get('/api/version-schema', { signal }),
-                request.get('/api/version', { signal }),
+                request.get('/api/app-schema', { signal }),
+                request.get('/api/get-app-config', { signal }),
             ])
-            if (!mountedRef.current) return
+            const hasValidData =
+                dataRes.data &&
+                typeof dataRes.data === 'object' &&
+                'app_version' in dataRes.data
+            const configData = hasValidData
+                ? dataRes.data
+                : {
+                      app_version: '0.0.0',
+                      download_url: '',
+                      last_update: '',
+                      changelog: '',
+                  }
+            setFormData(configData)
+            setOriginalData(configData)
             setSchema(schemaRes.data)
-            setFormData(dataRes.data)
-            setOriginalData(dataRes.data)
         } catch (err: unknown) {
             if (!mountedRef.current) return
             // 忽略取消请求的错误
@@ -92,18 +85,34 @@ export default function AppVersionTab() {
         if (!rawFormData || submitting) return
 
         const trimmedData = deepTrim(rawFormData)
+        const finalData = {
+            ...trimmedData,
+            app_version: trimmedData['app_version'] || '0.0.0',
+            download_url: trimmedData['download_url'] || '',
+            last_update: formatTime(),
+            changelog: trimmedData['changelog'] || '',
+        }
 
         // 无变化则跳过提交
-        if (originalData && isEqual(trimmedData, deepTrim(originalData))) {
+        if (originalData && isEqual(finalData, deepTrim(originalData))) {
             toast.info('内容没有变化，无需保存')
             return
         }
 
         setSubmitting(true)
         try {
-            await request.post('/api/version-save', trimmedData)
+            // 发送保存请求，并期望后端返回保存后的完整配置对象（包含服务器生成的时间戳等）
+            const response = await request.post(
+                '/api/save-app-config',
+                finalData,
+            )
+            const savedData = response.data // 后端返回最新数据
+
             if (!mountedRef.current) return
-            setOriginalData(trimmedData)
+
+            // 直接更新本地状态，不重新加载
+            setFormData(savedData || finalData)
+            setOriginalData(savedData || finalData)
             toast.success('✅ App版本配置保存成功！')
         } catch (err: unknown) {
             console.error('保存失败:', err)
@@ -114,9 +123,8 @@ export default function AppVersionTab() {
             if (mountedRef.current) setSubmitting(false)
         }
     }
-
     return (
-        <Card className="p-6">
+        <Card className="p-6 animate-fade-slide">
             <h2 className="text-lg font-semibold mb-4">App版本配置</h2>
             <Form
                 schema={schema}

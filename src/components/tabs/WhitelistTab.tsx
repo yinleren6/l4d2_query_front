@@ -1,3 +1,4 @@
+// src/components/tabs/WhitelistTab.tsx
 import { useState, useEffect, useRef, useCallback } from 'react'
 import request from '@/api/request'
 import { Button } from '@/components/ui/button'
@@ -7,10 +8,6 @@ import { WhitelistItem } from '@/types'
 import { toast } from 'sonner'
 import { Copy, RefreshCw, X } from 'lucide-react'
 
-interface ExtendedWhitelistItem extends WhitelistItem {
-    token: string
-}
-
 interface GroupConfig {
     group_id: string
     auto_reply: boolean
@@ -18,7 +15,7 @@ interface GroupConfig {
 }
 
 export default function WhitelistTab() {
-    const [list, setList] = useState<ExtendedWhitelistItem[]>([])
+    const [list, setList] = useState<WhitelistItem[]>([])
     const [groupId, setGroupId] = useState('')
     const [copyingId, setCopyingId] = useState('')
     const [showConfigEditor, setShowConfigEditor] = useState(false)
@@ -26,11 +23,9 @@ export default function WhitelistTab() {
     const [token, setToken] = useState('')
     const [config, setConfig] = useState<GroupConfig | null>(null)
     const [loading, setLoading] = useState(false)
-    const [pageLoading, setPageLoading] = useState(true)
 
     // 用于取消进行中的请求
     const abortControllerRef = useRef<AbortController | null>(null)
-    const mountedRef = useRef(true)
 
     // 通用：取消当前请求
     const cancelPendingRequest = () => {
@@ -42,12 +37,12 @@ export default function WhitelistTab() {
 
     // 加载白名单（可取消）
     const loadWhitelist = useCallback(async () => {
+        if (mountedRef.current) {
+            setLoading(false)
+        }
         cancelPendingRequest()
         const controller = new AbortController()
         abortControllerRef.current = controller
-
-        if (!mountedRef.current) return
-        setPageLoading(true)
 
         try {
             const res = await request.get('/api/admin/groups', {
@@ -61,10 +56,11 @@ export default function WhitelistTab() {
             toast.error(err.response?.data?.error || '加载失败')
             if (mountedRef.current) setList([])
         } finally {
-            if (mountedRef.current) setPageLoading(false)
+            if (mountedRef.current) setLoading(false)
         }
     }, [])
 
+    const mountedRef = useRef(true)
     useEffect(() => {
         mountedRef.current = true
         loadWhitelist()
@@ -147,11 +143,14 @@ export default function WhitelistTab() {
             toast.warning('请输入 Token')
             return
         }
+        const controller = new AbortController()
+        abortControllerRef.current = controller
         setLoading(true)
         try {
             const res = await request.get(
                 `/api/group/config/${currentEditGroupId}`,
                 {
+                    signal: controller.signal,
                     headers: { Authorization: `Bearer ${token}` },
                 },
             )
@@ -166,17 +165,20 @@ export default function WhitelistTab() {
 
     const saveConfig = async () => {
         if (!config || !currentEditGroupId || !token) return
+        const controller = new AbortController()
+        abortControllerRef.current = controller
         setLoading(true)
         try {
             await request.put(
                 `/api/group/config/${currentEditGroupId}`,
                 config,
                 {
+                    signal: controller.signal,
                     headers: { Authorization: `Bearer ${token}` },
                 },
             )
             toast.success('保存成功')
-            // 可选：重新加载配置以同步最新数据
+
             await loadConfig()
         } catch {
             toast.error('保存失败')
@@ -186,7 +188,7 @@ export default function WhitelistTab() {
     }
 
     return (
-        <Card className="p-6 w-full h-full min-h-[700px]">
+        <Card className="p-6 w-full h-full min-h-[700px] animate-fade-slide">
             <h2 className="text-lg font-semibold mb-4">群组白名单</h2>
             <div className="flex flex-col sm:flex-row gap-2 mb-4">
                 <Input
@@ -203,7 +205,7 @@ export default function WhitelistTab() {
 
             {showConfigEditor && (
                 <div className="border rounded-lg p-4 mb-4 bg-slate-50 dark:bg-slate-800/50">
-                    <div className="flex justify-between items-center mb-3">
+                    <div className="flex justify-between items-center mb-3 animate-fade-slide">
                         <h3 className="font-medium">
                             编辑群组配置：{currentEditGroupId}
                         </h3>
@@ -286,7 +288,7 @@ export default function WhitelistTab() {
                 </div>
             )}
 
-            {pageLoading ? (
+            {loading ? (
                 <div className="p-10 text-center">加载中...</div>
             ) : list.length === 0 ? (
                 <div className="p-8 text-center text-muted-foreground">

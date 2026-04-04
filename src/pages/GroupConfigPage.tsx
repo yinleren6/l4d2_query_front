@@ -1,4 +1,4 @@
-// GroupConfigPage.tsx - 基于Token登录编辑群配置
+//// src/pages/GroupConfigPage.tsx - 基于Token登录编辑群配置
 import { useState, useEffect, useRef, useCallback } from 'react'
 import request from '@/api/request'
 import { Button } from '@/components/ui/button'

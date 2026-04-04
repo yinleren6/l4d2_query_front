@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react'
+// src/components/tabs/ServerConfigTab.tsx
+import { useState, useEffect, useCallback, useRef } from 'react'
 import Form from '@rjsf/shadcn'
 import validator from '@rjsf/validator-ajv8'
 import request from '@/api/request'
@@ -6,27 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { ServerFormData, FormSchema } from '@/types'
 import { toast } from 'sonner'
-
-// 工具函数：去空格
-const deepTrim = (obj: any): any => {
-    if (typeof obj === 'string') return obj.trim()
-    if (Array.isArray(obj)) return obj.map(deepTrim)
-    if (obj !== null && typeof obj === 'object') {
-        const trimmedObj: any = {}
-        for (const key in obj) {
-            if (Object.prototype.hasOwnProperty.call(obj, key)) {
-                trimmedObj[key] = deepTrim(obj[key])
-            }
-        }
-        return trimmedObj
-    }
-    return obj
-}
-
-// 工具函数：对比数据
-const isEqual = (obj1: any, obj2: any): boolean => {
-    return JSON.stringify(obj1) === JSON.stringify(obj2)
-}
+import { deepTrim, isEqual, formatTime } from '@/lib/utils'
 
 export default function ServerConfigTab() {
     const [schema, setSchema] = useState<FormSchema | null>(null)
@@ -40,48 +21,37 @@ export default function ServerConfigTab() {
     const [error, setError] = useState('')
     const [submitting, setSubmitting] = useState(false)
 
-    // 生成你要的 10 位时间格式：YYMMDDHHmm
-    const formatTime = () => {
-        const now = new Date()
-        const pad = (num: number) => num.toString().padStart(2, '0')
-        const year = pad(now.getFullYear() % 100)
-        const month = pad(now.getMonth() + 1)
-        const day = pad(now.getDate())
-        const hour = pad(now.getHours())
-        const minute = pad(now.getMinutes())
-        console.log(
-            '【日志1】生成的时间戳=',
-            year + month + day + hour + minute,
-        )
-        return year + month + day + hour + minute
-    }
+    const getDefaultConfig = useCallback((): ServerFormData => {
+        return {
+            version: 0,
+            last_update: formatTime(),
+            server_list: [],
+        } as unknown as ServerFormData
+    }, [])
 
-    useEffect(() => {
-        // ✅ 终极修复：严格匹配你表单的【中文字段名】
-        const getDefaultConfig = (): ServerFormData => {
-            console.log('【日志2】自动生成的默认表单数据=', {
-                服务器列表版本: 0,
-                最后更新时间: formatTime(),
-            })
-            return {
-                服务器列表版本: 0,
-                最后更新时间: formatTime(),
-            } as unknown as ServerFormData
-        }
-
-        const fetchData = async (signal?: AbortSignal) => {
+    const fetchData = useCallback(
+        async (signal?: AbortSignal) => {
+            if (mountedRef.current) {
+                setLoading(false)
+            }
             try {
                 setLoading(true)
                 setError('')
-                console.log('开始请求数据')
                 const [schemaRes, dataRes] = await Promise.all([
-                    request.get('/api/update-schema', { signal }),
-                    request.get('/api/update-data', { signal }),
+                    request.get('/api/config-schema', { signal }),
+                    request.get('/api/get-user-config', { signal }),
                 ])
 
                 // 空数据自动填充默认值，绝对不会为空
-                const configData = dataRes.data || getDefaultConfig()
-                console.log('【日志3】最终渲染表单的数据=', configData)
+                const hasValidData =
+                    dataRes.data &&
+                    typeof dataRes.data === 'object' &&
+                    ('version' in dataRes.data || 'server_list' in dataRes.data)
+                const configData = hasValidData
+                    ? dataRes.data
+                    : getDefaultConfig()
+                // const configData = dataRes.data || getDefaultConfig()
+
                 setSchema(schemaRes.data)
                 setFormData(configData)
                 setOriginalData(configData)
@@ -90,16 +60,24 @@ export default function ServerConfigTab() {
                     setError('加载失败，请刷新重试')
                     toast.error('加载服务器配置失败')
                 }
-                console.error('加载错误:', err)
             } finally {
                 setLoading(false)
             }
-        }
+        },
+        [getDefaultConfig],
+    )
+
+    const mountedRef = useRef(true)
+    useEffect(() => {
+        mountedRef.current = true
 
         const controller = new AbortController()
         fetchData(controller.signal)
-        return () => controller.abort()
-    }, [])
+        return () => {
+            mountedRef.current = false
+            controller.abort()
+        }
+    }, [fetchData])
 
     // ✅ 提交时强制赋值中文字段，杜绝校验报错
     const handleSubmit = async ({
@@ -115,9 +93,10 @@ export default function ServerConfigTab() {
         // 关键：强制赋值必填中文字段
         const finalData = {
             ...trimmedData,
-            服务器列表版本: trimmedData['服务器列表版本'] || 0,
-            最后更新时间: formatTime(),
-        } as ServerFormData
+            version: trimmedData['version'] || '0',
+            last_update: formatTime(),
+            server_list: trimmedData['server_list'] || [],
+        }
 
         // 无修改不提交
         if (originalData && isEqual(finalData, deepTrim(originalData))) {
@@ -127,7 +106,7 @@ export default function ServerConfigTab() {
 
         setSubmitting(true)
         try {
-            const res = await request.post('/api/save', finalData)
+            const res = await request.post('/api/save-user-config', finalData)
             if (res.data) {
                 setFormData(res.data)
                 setOriginalData(res.data)
@@ -146,11 +125,8 @@ export default function ServerConfigTab() {
         return <div className="p-8 text-center text-destructive">{error}</div>
     if (!schema) return <div className="p-8 text-center">加载中...</div>
 
-    // ==============================================
-    // ✅ 完全保留你原版的 return 渲染代码！一字未改！
-    // ==============================================
     return (
-        <Card className="p-6">
+        <Card className="p-6 animate-fade-slide">
             <h2 className="text-lg font-semibold mb-4">服务器列表配置</h2>
             <Form
                 schema={schema}

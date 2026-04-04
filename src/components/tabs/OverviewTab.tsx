@@ -1,3 +1,4 @@
+// src/components/tabs/OverviewTab.tsx
 import { useEffect, useState, useCallback, useRef } from 'react'
 import request from '@/api/request'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -25,6 +26,9 @@ export default function OverviewTab() {
     const abortControllerRef = useRef<AbortController | null>(null)
 
     const fetchStats = useCallback(async () => {
+        if (mountedRef.current) {
+            setLoading(false)
+        }
         // 取消上一次未完成的请求
         if (abortControllerRef.current) {
             abortControllerRef.current.abort()
@@ -109,10 +113,12 @@ export default function OverviewTab() {
             setLoading(false)
         }
     }, [])
-
+    const mountedRef = useRef(true)
     useEffect(() => {
+        mountedRef.current = true
         fetchStats()
         return () => {
+            mountedRef.current = false
             if (abortControllerRef.current) {
                 abortControllerRef.current.abort()
             }
@@ -151,7 +157,7 @@ export default function OverviewTab() {
         <div className="space-y-6">
             {/* 统计卡片：响应式网格 */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                <Card>
+                <Card className="animate-fade-slide">
                     <CardHeader className="pb-2">
                         <CardTitle className="text-sm font-medium text-muted-foreground">
                             总用户数
@@ -163,7 +169,7 @@ export default function OverviewTab() {
                         </div>
                     </CardContent>
                 </Card>
-                <Card>
+                <Card className="animate-fade-slide">
                     <CardHeader className="pb-2">
                         <CardTitle className="text-sm font-medium text-muted-foreground">
                             今日活跃
@@ -175,7 +181,7 @@ export default function OverviewTab() {
                         </div>
                     </CardContent>
                 </Card>
-                <Card>
+                <Card className="animate-fade-slide">
                     <CardHeader className="pb-2">
                         <CardTitle className="text-sm font-medium text-muted-foreground">
                             今日请求
@@ -187,7 +193,7 @@ export default function OverviewTab() {
                         </div>
                     </CardContent>
                 </Card>
-                <Card>
+                <Card className="animate-fade-slide">
                     <CardHeader className="pb-2">
                         <CardTitle className="text-sm font-medium text-muted-foreground">
                             新用户
@@ -202,7 +208,7 @@ export default function OverviewTab() {
             </div>
 
             {/* 图表区域：空数据占位 + 响应式高度 */}
-            <Card className="p-6">
+            <Card className="p-6 animate-fade-slide">
                 <h3 className="text-lg font-semibold mb-4">近7日数据趋势</h3>
                 <div className="h-[300px] sm:h-[400px] w-full">
                     {daily.length === 0 ? (

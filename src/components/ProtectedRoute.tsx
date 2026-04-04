@@ -1,4 +1,5 @@
-import { Navigate } from 'react-router-dom'
+// src/components/ProtectedRoute.tsx
+import { useLocation, Navigate } from 'react-router-dom'
 import { useAuthStore } from '@/store/authStore'
 
 export default function ProtectedRoute({
@@ -7,6 +8,7 @@ export default function ProtectedRoute({
     children: React.ReactNode
 }) {
     const { user } = useAuthStore()
-    if (!user) return <Navigate to="/login" />
+    const location = useLocation()
+    if (!user) return <Navigate to="/login" state={{ from: location }} />
     return <>{children}</>
 }

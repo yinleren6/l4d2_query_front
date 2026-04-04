@@ -1,6 +1,7 @@
+// src/api/request.ts
 import axios from 'axios'
 import { toast } from 'sonner'
-
+import { useAuthStore } from '@/store/authStore';
 const request = axios.create({ baseURL: '/' })
 
 // 请求拦截器：携带 Token
@@ -42,11 +43,10 @@ request.interceptors.response.use(
         if (err.response) {
             const { status } = err.response
             if (status === 401) {
-                toast.error('登录态失效，请重新登录')
-                localStorage.removeItem('user')
-                // 4. 避免重复跳转登录页
+                toast.error('登录态失效，请重新登录');
+                useAuthStore.getState().logout(); // 同步清除 store
                 if (window.location.pathname !== '/login') {
-                    window.location.href = '/login'
+                    window.location.href = '/login';
                 }
             } else if (status === 403) {
                 toast.error('无权限访问该功能')

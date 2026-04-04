@@ -1,9 +1,23 @@
+/* /src/index.css */
 @import 'tailwindcss';
 @import 'tw-animate-css';
 @import '@fontsource-variable/geist';
 @source "../node_modules/@rjsf/shadcn"; /* 确保路径指向正确 */
 @custom-variant dark (&:is(.dark *));
+@keyframes fadeSlideUp {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
 
+.animate-fade-slide {
+    animation: fadeSlideUp 0.3s ease-out;
+}
 @layer base {
     * {
         margin: 0;

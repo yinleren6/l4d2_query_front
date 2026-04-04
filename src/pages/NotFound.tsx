@@ -1,4 +1,4 @@
-// pages/NotFound.tsx
+// // src/pages/NotFound.tsx
 import { Button } from '@/components/ui/button'
 import { useNavigate } from 'react-router-dom'
 

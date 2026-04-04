@@ -1,3 +1,4 @@
+// src/types/index.ts
 import type { JSONSchema7 } from 'json-schema'
 
 // 表单 Schema 类型（直接继承 JSONSchema7）
@@ -14,20 +15,21 @@ export interface User {
 export interface ServerItem {
     name: string
     url: string
-    port: number
-    enabled: boolean
 }
 
 export interface ServerFormData {
-    servers: ServerItem[]
+    version: string
+    last_update: string
+    changelog: string
+    server_list: ServerItem[]
 }
 
 // App版本配置类型
 export interface AppVersionFormData {
-    version: string
-    update_url: string
-    force_update: boolean
-    desc: string
+    app_version: string
+    download_url: string
+    last_update: string
+    changelog: string
 }
 
 // 白名单类型（包含 Token）
