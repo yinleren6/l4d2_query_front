@@ -1,5 +1,6 @@
 // src/components/tabs/ServerConfigTab.tsx
 import { useState, useEffect, useCallback, useRef } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import Form from '@rjsf/shadcn'
 import validator from '@rjsf/validator-ajv8'
 import request from '@/api/request'
@@ -8,8 +9,13 @@ import { Card } from '@/components/ui/card'
 import { ServerFormData, FormSchema } from '@/types'
 import { toast } from 'sonner'
 import { deepTrim, isEqual } from '@/lib/utils'
+import { useAuthStore } from '@/store/authStore'
 
 export default function ServerConfigTab() {
+    const { user } = useAuthStore()
+    const [searchParams] = useSearchParams()
+    const groupParam = searchParams.get('group')
+
     const [schema, setSchema] = useState<FormSchema | null>(null)
     const [formData, setFormData] = useState<ServerFormData | undefined>(
         undefined,
@@ -21,99 +27,112 @@ export default function ServerConfigTab() {
     const [error, setError] = useState('')
     const [submitting, setSubmitting] = useState(false)
 
-    const getDefaultConfig = useCallback((): ServerFormData => {
-        return {
-            version: 0,
-            last_update: 0,
-            server_list: [],
-        } as unknown as ServerFormData
-    }, [])
-
-    const fetchData = useCallback(
-        async (signal?: AbortSignal) => {
-            if (mountedRef.current) {
-                setLoading(false)
-            }
-            try {
-                setLoading(true)
-                setError('')
-                const [schemaRes, dataRes] = await Promise.all([
-                    request.get('/api/config-schema', { signal }),
-                    request.get('/api/get-user-config', { signal }),
-                ])
-
-                // 空数据自动填充默认值，绝对不会为空
-                const hasValidData =
-                    dataRes.data &&
-                    typeof dataRes.data === 'object' &&
-                    ('version' in dataRes.data || 'server_list' in dataRes.data)
-                const configData = hasValidData
-                    ? dataRes.data
-                    : getDefaultConfig()
-                // const configData = dataRes.data || getDefaultConfig()
-
-                setSchema(schemaRes.data)
-                setFormData(configData)
-                setOriginalData(configData)
-            } catch (err: unknown) {
-                if (err instanceof Error && err.name !== 'AbortError') {
-                    setError('加载失败，请刷新重试')
-                    toast.error('加载服务器配置失败')
-                }
-            } finally {
-                setLoading(false)
-            }
-        },
-        [getDefaultConfig],
-    )
+    // 群组列表（仅管理员）
+    const [groups, setGroups] = useState<{ group_id: string }[]>([])
+    const [currentGroupId, setCurrentGroupId] = useState<string>(() => {
+        if (user?.role === 'admin' && groupParam) return groupParam
+        return user?.id || ''
+    })
 
     const mountedRef = useRef(true)
+
+    // 加载群组列表（管理员）
+    useEffect(() => {
+        if (user?.role !== 'admin') return
+        const fetchGroups = async () => {
+            try {
+                const res = await request.get('/api/admin/groups')
+                console.log('群组数据示例:', res.data[0])
+                if (mountedRef.current) {
+                    // ✅ 只显示启用的群组
+                    const enabledGroups = (res.data || []).filter((g: any) => {
+                        return (
+                            g.enabled === true ||
+                            g.enabled === 1 ||
+                            g.enabled === 'true'
+                        )
+                    })
+                    setGroups(enabledGroups)
+                }
+            } catch (err) {
+                toast.error('加载群组列表失败')
+            }
+        }
+        fetchGroups()
+    }, [user])
+    // 加载配置（根据 currentGroupId）
+    const loadData = useCallback(async () => {
+        if (!currentGroupId) return
+        setLoading(true)
+        setError('')
+        try {
+            const [schemaRes, dataRes] = await Promise.all([
+                request.get('/api/config-schema'),
+                user?.role === 'admin' && currentGroupId !== user.id
+                    ? request.get(`/api/admin/config/${currentGroupId}`)
+                    : request.get('/api/get-user-config'),
+            ])
+            if (!mountedRef.current) return
+            setSchema(schemaRes.data)
+            const configData = dataRes?.data || {}
+            setFormData(configData)
+            setOriginalData(configData)
+        } catch (err: any) {
+            if (!mountedRef.current) return
+            setError('加载配置失败')
+            toast.error('加载配置失败')
+        } finally {
+            if (mountedRef.current) setLoading(false)
+        }
+    }, [currentGroupId, user])
+
     useEffect(() => {
         mountedRef.current = true
-        const controller = new AbortController()
-        fetchData(controller.signal)
+        loadData()
         return () => {
             mountedRef.current = false
-            controller.abort()
         }
-    }, [fetchData])
+    }, [loadData])
 
-    // ✅ 提交时强制赋值中文字段，杜绝校验报错
+    // 保存配置
     const handleSubmit = async ({
         formData: rawFormData,
     }: {
         formData?: ServerFormData
     }) => {
-        console.log('【日志4】提交前表单原始数据=', rawFormData)
         if (!rawFormData || submitting) return
-
         const trimmedData = deepTrim(rawFormData)
-
-        // 关键：强制赋值必填中文字段
         const finalData = {
             ...trimmedData,
             version: trimmedData['version'] || 0,
             last_update: 0,
             server_list: trimmedData['server_list'] || [],
         }
-
-        // 无修改不提交
         if (originalData && isEqual(finalData, deepTrim(originalData))) {
             toast.info('内容无变化，无需保存')
             return
         }
-
         setSubmitting(true)
         try {
-            const res = await request.post('/api/save-user-config', finalData)
-            if (res.data) {
-                setFormData(res.data)
-                setOriginalData(res.data)
-                toast.success('保存成功！')
+            let response
+            if (user?.role === 'admin' && currentGroupId !== user.id) {
+                response = await request.put(
+                    `/api/admin/config/${currentGroupId}`,
+                    finalData,
+                )
+            } else {
+                response = await request.post(
+                    '/api/save-user-config',
+                    finalData,
+                )
             }
+            const savedData = response.data
+            setFormData(savedData || finalData)
+            setOriginalData(savedData || finalData)
+            toast.success('保存成功！')
         } catch (err) {
             console.error('保存失败:', err)
-            toast.error('保存失败，请检查')
+            toast.error('保存失败，请重试')
         } finally {
             setSubmitting(false)
         }
@@ -126,7 +145,31 @@ export default function ServerConfigTab() {
 
     return (
         <Card className="p-6 animate-fade-slide">
-            <h2 className="text-lg font-semibold mb-4">服务器列表配置</h2>
+            {/* 管理员显示群组下拉选择框 */}
+            {user?.role === 'admin' && groups.length > 0 && (
+                <div className="mb-4 flex items-center gap-2 flex-wrap">
+                    <label className="text-sm font-medium">选择群组：</label>
+                    <select
+                        value={currentGroupId}
+                        onChange={(e) => setCurrentGroupId(e.target.value)}
+                        className="px-2 py-1 border rounded-md bg-background text-sm"
+                        disabled={loading}
+                    >
+                        {groups.map((g) => (
+                            <option key={g.group_id} value={g.group_id}>
+                                {g.group_id}{' '}
+                                {g.group_id === user.id ? '(当前用户)' : ''}
+                            </option>
+                        ))}
+                    </select>
+                </div>
+            )}
+            <h2 className="text-lg font-semibold mb-4">
+                服务器列表配置{' '}
+                {currentGroupId && currentGroupId !== user?.id
+                    ? `- ${currentGroupId}`
+                    : ''}
+            </h2>
             <Form
                 schema={schema}
                 formData={formData}

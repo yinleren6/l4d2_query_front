@@ -53,9 +53,9 @@ export default function NormalLoginPage() {
             )
 
             if (mountedRef.current) {
-                setUser({ id: data.userID, token: data.token, role: data.role })
+                setUser({ id: data.userID, token: data.token, role: 'user' })
                 toast.success('Token登录成功')
-                navigate('/')
+                navigate('/dashboard/server')
             }
         } catch (err: unknown) {
             if (axios.isCancel(err) || (err as Error).name === 'AbortError') {

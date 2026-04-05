@@ -18,6 +18,33 @@
 .animate-fade-slide {
     animation: fadeSlideUp 0.3s ease-out;
 }
+@keyframes popBounce {
+    0% {
+        opacity: 0;
+        transform: scale(0.8);
+    }
+    60% {
+        opacity: 1;
+        transform: scale(1.1);
+    }
+
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+.animate-popBounce {
+    animation: popBounce 1s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+@font-face {
+    font-family: 'MaokenZhuyuanTi';
+    src: url('@/assets/fonts/MaoKenZhuYuanTi-MaokenZhuyuanTi-2.ttf')
+        format('truetype');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
 @layer base {
     * {
         margin: 0;

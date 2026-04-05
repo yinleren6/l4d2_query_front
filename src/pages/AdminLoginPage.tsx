@@ -44,7 +44,7 @@ export default function AdminLoginPage() {
                 '/api/login',
                 {
                     userID: id.trim(),
-                    Password: password.trim(),
+                    password: password.trim(),
                 },
                 { signal: controller.signal },
             )
