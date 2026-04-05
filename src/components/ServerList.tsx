@@ -1,4 +1,4 @@
-// src/components/ServerList.tsx 完整可替换代码
+// src/components/ServerList.tsx
 import ServerCard, { ServerInfo } from '@/components/ServerCard'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Card } from '@/components/ui/card'
@@ -8,12 +8,9 @@ interface ServerListProps {
     loading: boolean
     error?: string | null
     emptyMessage?: string
-    /** 自定义占位卡片数量，默认 4 */
     placeholderCount?: number
-    /** 自定义容器样式（flex 布局） */
     containerClassName?: string
-    /** 自定义单个卡片包装样式 */
-    cardClassName?: string
+    cardClassName?: string // 新增：传递给 ServerCard 的类名
 }
 
 export default function ServerList({
@@ -22,8 +19,7 @@ export default function ServerList({
     error,
     emptyMessage = '暂无服务器信息',
     placeholderCount = 4,
-    // 核心：改回自动填充固定360px卡片的网格，保留优化的间距
-    containerClassName = 'grid grid-cols-[repeat(auto-fill,minmax(360px,1fr))] justify-center gap-4 p-6 w-full max-w-[1600px] mx-auto',
+    containerClassName = 'flex flex-wrap justify-center gap-4 p-4',
     cardClassName = '',
 }: ServerListProps) {
     if (loading) {
@@ -32,7 +28,7 @@ export default function ServerList({
                 {Array.from({ length: placeholderCount }).map((_, i) => (
                     <Skeleton
                         key={i}
-                        className={`w-[360px] h-[300px] rounded-xl ${cardClassName}`}
+                        className={`rounded-2xl ${cardClassName || 'w-[360px] h-[280px]'}`}
                     />
                 ))}
             </div>
@@ -41,24 +37,28 @@ export default function ServerList({
 
     if (error) {
         return (
-            <Card className="p-10 text-center text-destructive mx-6 mt-6 border-destructive/20 bg-destructive/5 rounded-xl">
-                <p className="font-medium">{error}</p>
+            <Card className="p-8 text-center text-destructive m-4">
+                {error}
             </Card>
         )
     }
 
     if (servers.length === 0) {
         return (
-            <Card className="p-10 text-center text-muted-foreground mx-6 mt-6 rounded-xl border border-slate-200 dark:border-slate-800">
-                <p className="font-medium">{emptyMessage}</p>
+            <Card className="p-8 text-center text-muted-foreground m-4">
+                {emptyMessage}
             </Card>
         )
     }
 
     return (
         <div className={containerClassName}>
-            {servers.map((server) => (
-                <ServerCard key={server.ServerAddress} server={server} />
+            {servers.map((server, idx) => (
+                <ServerCard
+                    key={idx}
+                    server={server}
+                    className={cardClassName}
+                />
             ))}
         </div>
     )

@@ -22,15 +22,8 @@ export default function PublicServerInfo() {
         'https://www.loliapi.com/acg',
         'https://www.dmoe.cc/random.php',
         'https://uapis.cn/api/v1/random/image?category=acg&type=pc',
-        'https://www.loliapi.com/acg',
-        'https://www.dmoe.cc/random.php',
-        'https://uapis.cn/api/v1/random/image?category=acg&type=pc',
-        'https://www.loliapi.com/acg',
-        'https://www.dmoe.cc/random.php',
-        'https://uapis.cn/api/v1/random/image?category=acg&type=pc',
-        'https://www.loliapi.com/acg',
     ]
-    const switchTime = 15000
+    const switchTime = 25000
     const transitionTime = 5000
 
     useEffect(() => {
@@ -108,7 +101,7 @@ export default function PublicServerInfo() {
             {/* 内容 */}
             <div className="relative z-10 animate-popBounce">
                 <div className="grid grid-cols-[repeat(auto-fill,360px)] justify-center gap-6 p-4 md:p-6 max-w-7xl mx-auto">
-                    <div className="col-span-full bg-orange-50/60 dark:bg-slate-900/85 backdrop-blur-md border border-slate-200/50 dark:border-slate-800/50 rounded-xl p-5 shadow-md">
+                    <div className="col-span-full bg-orange-50/50 dark:bg-slate-900/85 backdrop-blur-sm animate-backdrop-blur border border-slate-200/50 dark:border-slate-800/50 rounded-xl p-5 shadow-md">
                         <h3 className="text-xl font-bold text-slate-800 dark:text-slate-100 mb-4 flex items-center gap-2">
                             <span className="text-amber-500">🔔</span>{' '}
                             服务器公告
@@ -174,7 +167,7 @@ export default function PublicServerInfo() {
                     </div>
 
                     {!loading && !error && (
-                        <div className="col-span-full bg-white/60 dark:bg-slate-900/85 backdrop-blur-md border border-slate-200/50 dark:border-slate-800/50 rounded-xl p-4 shadow-md flex items-center justify-between">
+                        <div className="col-span-full bg-white/60 dark:bg-slate-900/85 backdrop-blur-sm animate-backdrop-blur border border-slate-200/50 dark:border-slate-800/50 rounded-xl p-4 shadow-md flex items-center justify-between">
                             <div className="flex items-center gap-2">
                                 <span className="text-slate-700 dark:text-slate-300 font-medium">
                                     在线玩家：

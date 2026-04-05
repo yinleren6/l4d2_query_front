@@ -2,13 +2,13 @@
 import { lazy, Suspense } from 'react'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import ProtectedRoute from '@/components/ProtectedRoute'
-import DashboardLayout from '@/pages/DashboardLayout' // 新建布局组件
+import DashboardLayout from '@/pages/DashboardPage' // 新建布局组件
 import OverviewTab from '@/components/tabs/OverviewTab'
 import ServerConfigTab from '@/components/tabs/ServerConfigTab'
-import AppVersionTab from '@/components/tabs/AppVersionTab'
+import AppVersionTab from '@/components/tabs/AppConfigTab'
 import WhitelistTab from '@/components/tabs/WhitelistTab'
-import ServerInfoTab from '@/components/tabs/ServerInfoTab'
-import PublicServerInfo from '@/pages/PublicServerInfo'
+import PlayerListTab from '@/components/tabs/PlayerListTab'
+import PublicServerInfo from '@/pages/PublicInfoPage'
 import { Toaster } from 'sonner' // 👈 必须引入
 // 懒加载页面组件
 const AdminLoginPage = lazy(() => import('@/pages/AdminLoginPage'))
@@ -37,14 +37,16 @@ export default function App() {
                     >
                         <Route index element={<OverviewTab />} />
                         <Route path="overview" element={<OverviewTab />} />
-                        <Route path="server" element={<ServerConfigTab />} />
-                        <Route path="version" element={<AppVersionTab />} />
+                        <Route
+                            path="serverconfig"
+                            element={<ServerConfigTab />}
+                        />
+                        <Route path="appconfig" element={<AppVersionTab />} />
                         <Route path="whitelist" element={<WhitelistTab />} />
-                        <Route path="server-info" element={<ServerInfoTab />} />
+                        <Route path="playerlist" element={<PlayerListTab />} />
                     </Route>
                     {/* 公开页面 */}
                     <Route path="/p/:groupID" element={<PublicServerInfo />} />
-
                     <Route path="*" element={<NotFound />} />
                 </Routes>
             </Suspense>

@@ -28,13 +28,13 @@ export default function DashboardLayout() {
             roles: ['admin'],
         },
         {
-            to: '/dashboard/server',
+            to: '/dashboard/serverconfig',
             label: '服务器配置',
             icon: <Server size={18} />,
             roles: ['admin', 'user'],
         },
         {
-            to: '/dashboard/version',
+            to: '/dashboard/appconfig',
             label: 'App版本配置',
             icon: <Database size={18} />,
             roles: ['admin'],
@@ -46,7 +46,7 @@ export default function DashboardLayout() {
             roles: ['admin'],
         },
         {
-            to: '/dashboard/server-info',
+            to: '/dashboard/playerlist',
             label: '服务器信息',
             icon: <Activity size={18} />,
             roles: ['admin', 'user'],

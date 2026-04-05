@@ -18,7 +18,7 @@ export default function WhitelistTab() {
 
     const navigate = useNavigate()
     const editGroupConfig = (groupId: string) => {
-        navigate(`/dashboard/server?group=${groupId}`)
+        navigate(`/dashboard/serverconfig?group=${groupId}`)
     }
 
     const abortControllerRef = useRef<AbortController | null>(null)
