@@ -1,0 +1,22 @@
+[
+    {
+        "id": "1",
+        "name": "春娇与志明",
+        "artistsname": "你🐎",
+        "picurl": "https://picui.ogmua.cn/s1/2026/04/06/69d3d8282e3df.webp",
+        "url": "https://static.91css.top/cjyzm.mp3",
+        "musicDuration": "00:48"
+    },
+    {
+        "id": "2",
+        "name": "迪迦奥特曼出场",
+        "artistsname": "你🐎",
+        "picurl": "https://picui.ogmua.cn/s1/2026/04/06/69d3d8282e3df.webp",
+        "url": "https://static.91css.top/djotmcc.mp3",
+        "musicDuration": "00:40",
+        "al": {
+            "name": "嘻嘻",
+            "picUrl": "https://picui.ogmua.cn/s1/2026/04/06/69d3d8282e3df.webp"
+        }
+    }
+]

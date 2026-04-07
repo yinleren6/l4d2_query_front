@@ -1,14 +1,10 @@
 // src/components/ProtectedRoute.tsx
-import { useLocation, Navigate } from 'react-router-dom'
-import { useAuthStore } from '@/store/authStore'
+import { useLocation, Navigate } from "react-router-dom";
+import { useAuthStore } from "@/store/authStore";
 
-export default function ProtectedRoute({
-    children,
-}: {
-    children: React.ReactNode
-}) {
-    const { user } = useAuthStore()
-    const location = useLocation()
-    if (!user) return <Navigate to="/login" state={{ from: location }} />
-    return <>{children}</>
+export default function ProtectedRoute({ children }: { children: React.ReactNode }) {
+  const { user } = useAuthStore();
+  const location = useLocation();
+  if (!user) return <Navigate to="/login" state={{ from: location }} />;
+  return <>{children}</>;
 }
