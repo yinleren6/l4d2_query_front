@@ -3,16 +3,15 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { Card } from "@/components/ui/card";
 import request from "@/api/request";
 import { toast } from "sonner";
-import { RefreshCw } from "lucide-react";
-import StreamingServerList from "@/components/StreamingServerList";
-import { useAuthStore } from "@/store/authStore";
+
+import { useAuthStore } from "@/store/AuthState";
 import { Button } from "@/components/ui/button";
 export default function PlayerListTab() {
   const { user } = useAuthStore();
   const [groups, setGroups] = useState<{ group_id: string; name: string }[]>([]);
   const [selectedGroup, setSelectedGroup] = useState<string>("");
   const [loadingGroups, setLoadingGroups] = useState(false);
-  const [refreshKey, setRefreshKey] = useState(0);
+  // const [refreshKey, setRefreshKey] = useState(0);
   const mountedRef = useRef(true);
 
   const isAdmin = user?.role === "admin";
@@ -41,12 +40,10 @@ export default function PlayerListTab() {
     else if (currentUserId) setSelectedGroup(currentUserId);
   }, [isAdmin, currentUserId, fetchGroups]);
 
-  const handleManualRefresh = () => {
-    setRefreshKey((prev) => prev + 1);
-  };
-
   const navigateToPublic = () => {
-    window.open(`/p/${selectedGroup}`, "_blank");
+    // 👇 自动获取当前域名，把 dash 换成 l
+    const publicHost = window.location.host.replace("dash.", "l.");
+    window.open(`https://${publicHost}/p/${selectedGroup}`, "_blank");
   };
 
   if (loadingGroups && isAdmin) return <div className="p-8 text-center">加载中...</div>;
@@ -66,9 +63,7 @@ export default function PlayerListTab() {
               </option>
             ))}
           </select>
-          <Button variant="secondary" size="default" onClick={handleManualRefresh} className="bg-white/80 backdrop-blur-sm shadow-lg hover:bg-white/90">
-            <RefreshCw size={18} />
-          </Button>
+
           <button onClick={navigateToPublic} className="px-4 py-1.5 bg-sky-400 text-white rounded-md text-xs font-medium hover:bg-sky-600 transition">
             服务器玩家列表页面
           </button>
@@ -76,16 +71,12 @@ export default function PlayerListTab() {
       )}
       {!isAdmin && (
         <div className="flex justify-end gap-2">
-          <Button variant="secondary" size="default" onClick={handleManualRefresh} className="bg-white/80 backdrop-blur-sm shadow-lg hover:bg-white/90">
-            <RefreshCw size={18} />
-          </Button>
-
           <Button variant="secondary" size="default" onClick={navigateToPublic} className="bg-white/80 backdrop-blur-sm shadow-lg hover:bg-white/90">
             服务器玩家列表页面
           </Button>
         </div>
       )}
-      <StreamingServerList key={refreshKey} groupId={selectedGroup} isAutoRefresh={true} />
+      {/* <StreamingServerList key={refreshKey} groupId={selectedGroup} isAutoRefresh={true} /> */}
     </div>
   );
 }

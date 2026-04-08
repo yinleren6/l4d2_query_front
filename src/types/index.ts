@@ -4,11 +4,18 @@ import type { JSONSchema7 } from 'json-schema'
 // 表单 Schema 类型（直接继承 JSONSchema7）
 export type FormSchema = JSONSchema7
 
+export interface AuthState {
+  user: User | null
+  setUser: (user: User) => void
+  logout: () => void
+}
+
 // 用户类型
 export interface User {
   id: string      // 用户ID
-  token: string   // JWT Token
+  jwtToken: string   // JWT Token
   role: string    // 角色（admin / user）
+  refreshToken?: string;
 }
 
 // 服务器配置类型

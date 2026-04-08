@@ -9,7 +9,7 @@ import { Card } from "@/components/ui/card";
 import { ServerFormData, FormSchema } from "@/types";
 import { toast } from "sonner";
 import { deepTrim, isEqual } from "@/lib/utils";
-import { useAuthStore } from "@/store/authStore";
+import { useAuthStore } from "@/store/AuthState";
 import LoadingGif from "@/components/ui/loadinggif";
 export default function ServerConfigTab() {
   const { user } = useAuthStore();

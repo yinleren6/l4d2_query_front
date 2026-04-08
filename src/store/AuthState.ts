@@ -1,12 +1,8 @@
 // src/store/authStore.ts
 import { create } from 'zustand'
-import { User } from '@/types'
+import { User, AuthState } from '@/types'
 
-interface AuthState {
-  user: User | null
-  setUser: (user: User) => void
-  logout: () => void
-}
+
 
 // 安全地从 localStorage 读取用户数据
 const getStoredUser = (): User | null => {
@@ -38,7 +34,7 @@ export const useAuthStore = create<AuthState>((set) => ({
   logout: () => {
     localStorage.removeItem('user')
     set({ user: null })
-    // 注意：不再在这里进行 window.location.href 跳转，
-    // 调用方应使用 React Router 的 navigate 进行客户端路由跳转
   },
 }))
+
+
