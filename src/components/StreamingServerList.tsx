@@ -1,7 +1,8 @@
 // src/components/StreamingServerList.tsx
-import { useState, useEffect, useCallback, useRef } from "react";
+import { forwardRef, useImperativeHandle, useState, useEffect, useCallback, useRef } from "react";
 import ServerList from "./ServerList";
 import { ServerInfo } from "./ServerCard";
+import { toast } from "sonner";
 
 interface StreamingServerListProps {
   groupId: string;
@@ -11,109 +12,221 @@ interface StreamingServerListProps {
   onError?: (error: string) => void;
   onServersChange?: (servers: ServerInfo[]) => void;
 }
+export interface StreamingServerListRef {
+  refresh: () => void;
+}
 
-export default function StreamingServerList({ groupId, isAutoRefresh = true, onLoadingChange, onError, onServersChange }: StreamingServerListProps) {
+const StreamingServerList = forwardRef<StreamingServerListRef, StreamingServerListProps>(({ groupId, token, isAutoRefresh = true, onLoadingChange, onError, onServersChange }, ref) => {
   const [serversMap, setServersMap] = useState<Record<string, ServerInfo>>({});
   const [serverOrder, setServerOrder] = useState<string[]>([]);
-  const [loading, setLoading] = useState(true); // 初始加载中
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const mountedRef = useRef(true);
-  const eventSourceRef = useRef<EventSource | null>(null);
-  const refreshingRef = useRef(false); // 防止并发刷新
-  const initialLoadRef = useRef(false); // 标记是否已执行初始加载
+  const heartbeatIntervalRef = useRef<number | null>(null);
+  const reconnectTimerRef = useRef<number | null>(null);
+  const reconnectAttempts = useRef(0);
+  const [connectionKey, setConnectionKey] = useState(0);
+  const autoRefreshIntervalRef = useRef<number | null>(null);
   const servers = serverOrder.map((key) => serversMap[key]).filter(Boolean);
+  const isRefreshing = useRef(false);
+
+  // 稳定回调引用，避免不必要的重连
+  const onLoadingChangeRef = useRef(onLoadingChange);
+  const onErrorRef = useRef(onError);
+  const onServersChangeRef = useRef(onServersChange);
+  useEffect(() => {
+    onLoadingChangeRef.current = onLoadingChange;
+    onErrorRef.current = onError;
+    onServersChangeRef.current = onServersChange;
+  }, [onLoadingChange, onError, onServersChange]);
+
+  // 日志工具（保持不变）
+  const lastTimeRef = useRef<number>(0);
+  useEffect(() => {
+    lastTimeRef.current = Date.now();
+  }, []);
+  const logInterval = () => {
+    const now = Date.now();
+    const diff = now - lastTimeRef.current;
+    lastTimeRef.current = now;
+    const pad = (num: number, length = 2) => num.toString().padStart(length, "0");
+    const ms = diff % 1000;
+    const sec = Math.floor(diff / 1000) % 60;
+    const min = Math.floor(diff / 60000) % 60;
+    const hour = Math.floor(diff / 3600000);
+    if (hour > 0 || min > 0 || sec > 1) {
+      return `[间隔] ${pad(hour)}:${pad(min)}:${pad(sec)}.${pad(ms, 3)}`;
+    } else {
+      return ``;
+    }
+  };
+
+  // 自动刷新定时器（30秒发送一次 refresh）
+  useEffect(() => {
+    if (isAutoRefresh) {
+      autoRefreshIntervalRef.current = window.setInterval(() => {
+        if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+          wsRef.current.send(JSON.stringify({ type: "refresh" }));
+        }
+      }, 30000);
+    }
+    return () => {
+      if (autoRefreshIntervalRef.current) clearInterval(autoRefreshIntervalRef.current);
+    };
+  }, [isAutoRefresh]);
+
+  // 数据变化回调
+  useEffect(() => {
+    onServersChangeRef.current?.(servers);
+  }, [servers]);
 
   useEffect(() => {
-    onServersChange?.(servers);
-  }, [servers, onServersChange]);
+    onLoadingChangeRef.current?.(loading);
+  }, [loading]);
 
-  const closeEventSource = useCallback(() => {
-    if (eventSourceRef.current) {
-      eventSourceRef.current.close();
-      eventSourceRef.current = null;
+  const cleanup = useCallback(() => {
+    if (heartbeatIntervalRef.current) {
+      clearInterval(heartbeatIntervalRef.current);
+      heartbeatIntervalRef.current = null;
+    }
+    if (reconnectTimerRef.current) {
+      clearTimeout(reconnectTimerRef.current);
+      reconnectTimerRef.current = null;
     }
   }, []);
 
-  const connectStream = useCallback(() => {
-    if (!groupId) return;
-    const url = `/api/public/stream/${groupId}`;
-    const es = new EventSource(url);
-    eventSourceRef.current = es;
+  const wsRef = useRef<WebSocket | null>(null);
 
-    es.addEventListener("order", (event) => {
-      try {
-        const data = JSON.parse(event.data);
-        const order = data.order as string[];
-        if (!mountedRef.current) return;
-        setServerOrder(order);
-        setServersMap((prev) => {
-          const newMap = { ...prev };
-          order.forEach((addr) => {
-            if (!newMap[addr]) {
-              newMap[addr] = {
-                ServerAddress: addr,
-                ServerName: "加载中...",
-                Players: 0,
-                MaxPlayers: 0,
-                Map: "",
-                Mode: "",
-                PlayersList: [],
-                hasError: false,
-              };
-            }
-          });
-          return newMap;
-        });
-      } catch (e) {
-        console.error("解析 order 事件失败", e);
-      }
-    });
-
-    es.addEventListener("server", (event) => {
-      try {
-        const serverData = JSON.parse(event.data) as ServerInfo;
-        if (!mountedRef.current) return;
-        setServersMap((prev) => ({
-          ...prev,
-          [serverData.ServerAddress]: serverData,
-        }));
-      } catch (e) {
-        console.error("解析 server 事件失败", e);
-      }
-    });
-
-    es.addEventListener("done", () => {
-      if (!mountedRef.current) return;
-      setLoading(false);
-      onLoadingChange?.(false);
-      closeEventSource();
-      refreshingRef.current = false;
-    });
-
-    es.addEventListener("error", (event) => {
-      if (!mountedRef.current) return;
-      console.error("SSE 错误", event);
-      const errMsg = "连接失败，请重试";
-      setError(errMsg);
-      onError?.(errMsg);
-      setLoading(false);
-      onLoadingChange?.(false);
-      closeEventSource();
-      refreshingRef.current = false;
-    });
-  }, [groupId, onLoadingChange, onError, closeEventSource]);
-  // 新增 effect 用于同步 loading 到父组件
-  useEffect(() => {
-    onLoadingChange?.(loading);
-  }, [loading, onLoadingChange]);
-  // 初始加载 effect 中只负责连接，不再设置状态
-  useEffect(() => {
-    if (isAutoRefresh && groupId && !initialLoadRef.current) {
-      initialLoadRef.current = true;
-      connectStream();
+  const refresh = useCallback(() => {
+    if (isRefreshing.current) return;
+    if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+      isRefreshing.current = true;
+      wsRef.current.send(JSON.stringify({ type: "refresh" }));
+      setTimeout(() => {
+        isRefreshing.current = false;
+      }, 5000);
     }
-    return () => closeEventSource();
-  }, [groupId, isAutoRefresh, connectStream, closeEventSource]);
+  }, []);
+
+  useImperativeHandle(ref, () => ({ refresh }));
+
+  // 建立 WebSocket 连接（支持 token 鉴权）
+  useEffect(() => {
+    if (!groupId || !isAutoRefresh) return;
+    cleanup();
+
+    // 【关键修改】构建 WebSocket URL，如果 token 存在则作为查询参数附加
+    let wsUrl = `${window.location.protocol === "https:" ? "wss:" : "ws:"}//${window.location.host}/api/ws/stream/${groupId}`;
+    if (token) {
+      wsUrl += `?token=${encodeURIComponent(token)}`;
+    }
+
+    const ws = new WebSocket(wsUrl);
+    wsRef.current = ws;
+
+    ws.onopen = () => {
+      toast.success("嘀嘀～电波对接成功！");
+      console.log(new Date(Date.now()).toTimeString().split(" ")[0] + "." + new Date(Date.now()).getMilliseconds().toString().padStart(3, "0"), logInterval(), "WebSocket connected");
+      reconnectAttempts.current = 0;
+      setLoading(true);
+      setError("");
+      if (heartbeatIntervalRef.current) clearInterval(heartbeatIntervalRef.current);
+      heartbeatIntervalRef.current = window.setInterval(() => {
+        if (ws.readyState === WebSocket.OPEN) {
+          ws.send(JSON.stringify({ type: "ping" }));
+        }
+      }, 30000);
+    };
+
+    ws.onmessage = (event) => {
+      try {
+        const message = JSON.parse(event.data);
+        const { type, data } = message;
+        if (type === "order") {
+          const order = data.order as string[];
+          setServerOrder(order);
+          setServersMap((prev) => {
+            const newMap = { ...prev };
+            order.forEach((addr) => {
+              if (!newMap[addr]) {
+                newMap[addr] = {
+                  ServerAddress: addr,
+                  ServerName: "加载中...",
+                  Players: 0,
+                  MaxPlayers: 0,
+                  Map: "",
+                  Mode: "",
+                  PlayersList: [],
+                  hasError: false,
+                };
+              }
+            });
+            return newMap;
+          });
+        } else if (type === "server") {
+          const serverData = data as ServerInfo;
+          setServersMap((prev) => ({
+            ...prev,
+            [serverData.ServerAddress]: serverData,
+          }));
+        } else if (type === "done") {
+          setLoading(false);
+          onLoadingChangeRef.current?.(false);
+        } else if (type === "error") {
+          const errMsg = data?.error || "连接失败";
+          setError(errMsg);
+          onErrorRef.current?.(errMsg);
+          setLoading(false);
+          onLoadingChangeRef.current?.(false);
+        } else if (type === "pong") {
+          // 心跳响应
+        }
+      } catch (e) {
+        console.error("解析 WebSocket 消息失败", e);
+      }
+    };
+
+    ws.onerror = (err) => {
+      console.error("WebSocket error", err);
+      const errMsg = "WebSocket 连接错误";
+      setError(errMsg);
+      onErrorRef.current?.(errMsg);
+      setLoading(false);
+      onLoadingChangeRef.current?.(false);
+    };
+
+    ws.onclose = () => {
+      toast.error("嘀嘀… 通讯中断，正在努力重新对接电波中✨");
+      console.log(new Date(Date.now()).toTimeString().split(" ")[0] + "." + new Date(Date.now()).getMilliseconds().toString().padStart(3, "0"), logInterval(), "WebSocket closed");
+      if (heartbeatIntervalRef.current) {
+        clearInterval(heartbeatIntervalRef.current);
+        heartbeatIntervalRef.current = null;
+      }
+      if (isAutoRefresh && mountedRef.current) {
+        const delay = Math.min(30000, 1000 * Math.pow(2, reconnectAttempts.current));
+        reconnectAttempts.current++;
+        reconnectTimerRef.current = window.setTimeout(() => {
+          if (mountedRef.current && isAutoRefresh) {
+            setConnectionKey((k) => k + 1);
+          }
+        }, delay);
+      }
+    };
+
+    return () => {
+      ws.close();
+      if (heartbeatIntervalRef.current) clearInterval(heartbeatIntervalRef.current);
+      if (reconnectTimerRef.current) clearTimeout(reconnectTimerRef.current);
+    };
+  }, [groupId, isAutoRefresh, token, connectionKey, cleanup]); // 【关键修改】依赖数组中添加 token
+
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+      cleanup();
+    };
+  }, [cleanup]);
 
   return (
     <ServerList
@@ -121,9 +234,11 @@ export default function StreamingServerList({ groupId, isAutoRefresh = true, onL
       loading={loading}
       error={error}
       emptyMessage="暂无服务器信息"
-      placeholderCount={4}
+      placeholderCount={9}
       containerClassName="grid grid-cols-[repeat(auto-fill,minmax(320px,1fr))] gap-4 w-full"
       cardClassName="w-full"
     />
   );
-}
+});
+
+export default StreamingServerList;

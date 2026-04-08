@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { RefreshCw } from "lucide-react";
 import StreamingServerList from "@/components/StreamingServerList";
 import { useAuthStore } from "@/store/authStore";
-
+import { Button } from "@/components/ui/button";
 export default function PlayerListTab() {
   const { user } = useAuthStore();
   const [groups, setGroups] = useState<{ group_id: string; name: string }[]>([]);
@@ -17,7 +17,6 @@ export default function PlayerListTab() {
 
   const isAdmin = user?.role === "admin";
   const currentUserId = user?.id || "";
-  const token = user?.token || "";
 
   const fetchGroups = useCallback(async () => {
     if (!isAdmin) return;
@@ -42,7 +41,7 @@ export default function PlayerListTab() {
     else if (currentUserId) setSelectedGroup(currentUserId);
   }, [isAdmin, currentUserId, fetchGroups]);
 
-  const handleRefresh = () => {
+  const handleManualRefresh = () => {
     setRefreshKey((prev) => prev + 1);
   };
 
@@ -67,9 +66,9 @@ export default function PlayerListTab() {
               </option>
             ))}
           </select>
-          <button onClick={handleRefresh} className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition">
+          <Button variant="secondary" size="default" onClick={handleManualRefresh} className="bg-white/80 backdrop-blur-sm shadow-lg hover:bg-white/90">
             <RefreshCw size={18} />
-          </button>
+          </Button>
           <button onClick={navigateToPublic} className="px-4 py-1.5 bg-sky-400 text-white rounded-md text-xs font-medium hover:bg-sky-600 transition">
             服务器玩家列表页面
           </button>
@@ -77,15 +76,16 @@ export default function PlayerListTab() {
       )}
       {!isAdmin && (
         <div className="flex justify-end gap-2">
-          <button onClick={handleRefresh} className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition">
+          <Button variant="secondary" size="default" onClick={handleManualRefresh} className="bg-white/80 backdrop-blur-sm shadow-lg hover:bg-white/90">
             <RefreshCw size={18} />
-          </button>
-          <button onClick={navigateToPublic} className="px-4 py-1.5 bg-sky-400 text-white rounded-md text-xs font-medium hover:bg-sky-600 transition">
+          </Button>
+
+          <Button variant="secondary" size="default" onClick={navigateToPublic} className="bg-white/80 backdrop-blur-sm shadow-lg hover:bg-white/90">
             服务器玩家列表页面
-          </button>
+          </Button>
         </div>
       )}
-      <StreamingServerList key={refreshKey} groupId={selectedGroup} token={token} isAutoRefresh={true} />
+      <StreamingServerList key={refreshKey} groupId={selectedGroup} isAutoRefresh={true} />
     </div>
   );
 }

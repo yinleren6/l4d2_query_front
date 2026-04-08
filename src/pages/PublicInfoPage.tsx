@@ -1,17 +1,17 @@
+// src/pages/PublicInfoPage.tsx
 import { useState, useEffect, useRef } from "react";
 import { useParams } from "react-router-dom";
 import request from "@/api/request";
-import StreamingServerList from "@/components/StreamingServerList";
+
 import type { ServerInfo } from "@/components/ServerCard";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { Eye, EyeOff, Download, RefreshCw } from "lucide-react";
-
+import StreamingServerList, { StreamingServerListRef } from "@/components/StreamingServerList";
 export default function PublicServerInfo() {
   const { groupID } = useParams<{ groupID: string }>();
   const [isHidden, setIsHidden] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
-  const [loadingStats, setLoadingStats] = useState(false);
   const [errorStats, setErrorStats] = useState("");
   const [onlinePlayerCount, setOnlinePlayerCount] = useState(0);
   const [totalMaxPlayerCount, setTotalMaxPlayerCount] = useState(0);
@@ -21,14 +21,12 @@ export default function PublicServerInfo() {
   // 背景图轮播
   const [currentBgIndex, setCurrentBgIndex] = useState(0);
   const bgImages = [
-    "https://www.dmoe.cc/random.php",
-    "https://uapis.cn/api/v1/random/image?category=acg&type=pc",
+    "https://uapis.cn/api/v1/random/image?category=acg",
     "https://www.loliapi.com/acg",
-    "https://www.dmoe.cc/random.php",
-    "https://uapis.cn/api/v1/random/image?category=acg&type=pc",
+    "https://uapis.cn/api/v1/random/image?category=acg",
     "https://www.loliapi.com/acg",
-    "https://www.dmoe.cc/random.php",
-    "https://uapis.cn/api/v1/random/image?category=acg&type=pc",
+    "https://uapis.cn/api/v1/random/image?category=acg",
+    "https://www.loliapi.com/acg",
   ];
   // 存储每个背景图片的 Blob URL 和加载状态
   const [bgBlobUrls, setBgBlobUrls] = useState<(string | null)[]>(() => new Array(bgImages.length).fill(null));
@@ -37,7 +35,7 @@ export default function PublicServerInfo() {
   const blobUrlsRef = useRef<(string | null)[]>(bgBlobUrls);
   const switchTime = 20000;
   const transitionTime = 5000;
-
+  const streamingListRef = useRef<StreamingServerListRef>(null);
   // 轮播定时器
   useEffect(() => {
     const timer = setInterval(() => {
@@ -63,19 +61,25 @@ export default function PublicServerInfo() {
 
   // 手动刷新
   const handleManualRefresh = () => {
-    setRefreshKey((prev) => prev + 1);
-    setLoadingStats(true); // ✅ 启用加载状态
-    setErrorStats("");
-    toast.success("已请求刷新数据");
+    if (streamingListRef.current) {
+      streamingListRef.current.refresh();
+      // setLoadingStats(true);
+      setErrorStats("");
+      toast.success("数据正在飞快赶来哦 喵~");
+    } else {
+      // 降级：重建组件
+      setRefreshKey((prev) => prev + 1);
+      // setLoadingStats(true);
+      setErrorStats("");
+      toast.success("刷新中...");
+    }
   };
-
   const handleServersChange = (servers: ServerInfo[]) => {
     const onlineServers = servers.filter((s) => !s.hasError);
     setOnlineServerCount(onlineServers.length);
     setTotalServerCount(servers.length);
     setOnlinePlayerCount(onlineServers.reduce((sum, s) => sum + (s.Players || 0), 0));
     setTotalMaxPlayerCount(servers.reduce((sum, s) => sum + (s.MaxPlayers || 0), 0));
-    setLoadingStats(false); // ✅ 数据到达后结束加载
     setErrorStats("");
   };
 
@@ -161,7 +165,7 @@ export default function PublicServerInfo() {
               <span className="text-amber-500">🔔</span> 服务器公告
             </h3>
             <div className="space-y-4">
-              {/* 公告内容（省略，与原代码相同） */}
+              {/* 公告内容  */}
               <div>
                 <h3 className="notice text-xl text-amber-500 font-bold">⭐萌新首次游玩如何进服⭐</h3>
                 <p className="mt-1 text-slate-700 dark:text-slate-300">
@@ -197,8 +201,6 @@ export default function PublicServerInfo() {
           {/* 服务器信息 */}
           {errorStats ? (
             <div className="bg-red-50/80 dark:bg-red-900/30 rounded-xl p-4 text-center text-red-600">统计信息加载失败：{errorStats}</div>
-          ) : loadingStats ? (
-            <div className="bg-white/60 dark:bg-slate-900/85 rounded-xl p-4 text-center">加载中...</div>
           ) : (
             <div className="bg-white/60 dark:bg-slate-900/85 backdrop-blur-sm rounded-xl p-4 shadow-md flex items-center justify-between">
               <div className="flex items-center gap-1">
@@ -221,11 +223,11 @@ export default function PublicServerInfo() {
 
           {/* 服务器列表 */}
           <StreamingServerList
+            ref={streamingListRef}
             key={refreshKey}
             groupId={groupID!}
             token={undefined}
             isAutoRefresh={true}
-            onLoadingChange={setLoadingStats}
             onServersChange={handleServersChange} // 新增
             onError={setErrorStats}
           />

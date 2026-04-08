@@ -68,7 +68,7 @@ export default function ServerCard({ server, onJoin, onCopy, className = "" }: S
       className={`relative min-h-[120] p-4 rounded-xl flex flex-col transition-all duration-300 hover:shadow-xl bg-white/60 backdrop-blur-sm dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:-translate-y-1 opacity-0 animate-fadeIn ${className}`}>
       {/* 服务器名称行 + 按钮 */}
       <div className="flex items-center gap-2">
-        <div className="flex-1 font-bold text-lg break-words text-slate-800 dark:text-slate-100">{server.ServerName || server.ServerAddress}</div>
+        <div className="flex-1 font-bold text-lg wrap-break-words text-slate-800 dark:text-slate-100">{server.ServerName || server.ServerAddress}</div>
         <div className="flex gap-1">
           <button onClick={handleCopy} className="px-3 py-1.5 bg-green-400 text-white rounded-md text-xs font-medium hover:bg-green-500 transition flex items-center gap-1" title="复制连接地址">
             <Copy size={12} />
@@ -91,7 +91,7 @@ export default function ServerCard({ server, onJoin, onCopy, className = "" }: S
           <span className="flex-1 truncate text-emerald-600 dark:text-emerald-400">{server.Map}</span>
           {/* 进度条 */}
           <div className="w-20 mx-2 h-1.5 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
-            <div className="h-full bg-gradient-to-r from-emerald-500 to-sky-500 rounded-full" style={{ width: `${playersPercent}%` }} />
+            <div className="h-full bg-linear-to-r from-emerald-500 to-sky-500 rounded-full" style={{ width: `${playersPercent}%` }} />
           </div>
           <span className="mx-1 text-amber-500 dark:text-amber-400 whitespace-nowrap">[{server.Mode}]</span>
         </div>
@@ -114,8 +114,8 @@ export default function ServerCard({ server, onJoin, onCopy, className = "" }: S
               <div className="space-y-1">
                 {server.PlayersList.map((player, idx) => (
                   <div key={idx} className="flex items-center gap-2 text-xs h-6 px-2 rounded hover:bg-slate-100 dark:hover:bg-slate-800/60">
-                    <span className="w-7 flex-shrink-0 text-slate-600 dark:text-slate-400">[{player.score}]</span>
-                    <span className="w-16 flex-shrink-0 text-left text-slate-500 dark:text-slate-500">{player.time}</span>
+                    <span className="w-7 shrink-0 text-slate-600 dark:text-slate-400">[{player.score}]</span>
+                    <span className="w-16 shrink-0 text-left text-slate-500 dark:text-slate-500">{player.time}</span>
                     <div className="flex-1 overflow-hidden text-slate-700 dark:text-slate-300">
                       <div className="whitespace-nowrap overflow-x-auto scrollbar-hide">{player.name}</div>
                     </div>

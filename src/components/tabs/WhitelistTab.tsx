@@ -82,6 +82,9 @@ export default function WhitelistTab() {
 
   // 启用禁用
   const toggleEnable = async (groupId: string, currentlyEnabled: boolean) => {
+    if (!confirm(`确定要${currentlyEnabled ? "禁用" : "启用"}群组 ${groupId} 吗？`)) {
+      return;
+    }
     try {
       await request.patch(`/api/admin/groups/${groupId}/enabled`, {
         enabled: !currentlyEnabled,
@@ -96,7 +99,7 @@ export default function WhitelistTab() {
   // 刷新 Token
   const refreshToken = async (groupId: string) => {
     try {
-      if (!confirm(`确定要刷新群组 "${groupId}" 的 Token 吗？此操作不可恢复。旧的 Token 将失效。`)) {
+      if (!confirm(`确定要刷新群组 ${groupId} 的 Token 吗？此操作不可恢复。旧的 Token 将失效。`)) {
         return;
       }
       await request.patch(`/api/admin/groups/${groupId}/token`);
@@ -127,7 +130,7 @@ export default function WhitelistTab() {
 
   // 删除函数
   const deleteGroup = async (groupId: string) => {
-    if (!confirm(`确定要删除群组 "${groupId}" 吗？此操作不可恢复，并会删除该群组的配置文件。`)) {
+    if (!confirm(`确定要删除群组 ${groupId} 吗？此操作不可恢复，并会删除该群组的配置文件。`)) {
       return;
     }
     try {
@@ -140,7 +143,7 @@ export default function WhitelistTab() {
   };
 
   return (
-    <Card className="p-6 w-full h-full min-h-[700px] animate-fade-slide">
+    <Card className="p-6 w-full h-full min-h-175 animate-fade-slide">
       <h2 className="text-lg font-semibold mb-4">群组列表</h2>
       <div className="flex flex-col sm:flex-row gap-2 mb-4">
         <Input value={groupId} onChange={(e) => setGroupId(e.target.value)} placeholder="输入群组ID" onKeyDown={(e) => e.key === "Enter" && addWhitelist()} className="flex-1" />
