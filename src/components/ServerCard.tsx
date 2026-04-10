@@ -89,21 +89,21 @@ export default function ServerCard({ server, onJoin, onCopy, className = "" }: S
       {!hasError && (
         <div className="flex items-center text-sm mt-2 font-medium px-1">
           <span className="flex-1 truncate text-emerald-600 dark:text-emerald-400">{server.Map}</span>
-          {/* 进度条 */}
-          <div className="w-20 mx-2 h-1.5 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
-            <div className="h-full bg-linear-to-r from-emerald-500 to-sky-500 rounded-full" style={{ width: `${playersPercent}%` }} />
-          </div>
           <span className="mx-1 text-amber-500 dark:text-amber-400 whitespace-nowrap">[{server.Mode}]</span>
         </div>
       )}
-
       {/* 玩家列表折叠区域 */}
       <div className="mt-2">
         {!hasError && (
           <button
             onClick={toggleExpand}
             className="w-full h-12 flex items-center justify-between text-xs text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 py-1 px-2 rounded-md bg-slate-100/50 hover:bg-slate-200/50 dark:hover:bg-slate-800/60 transition">
-            <span>玩家列表 ({playersCount})</span>
+            <div className="flex flex-col px-3 py-1.5 overflow-hidden gap-1 w-full flex-1">
+              <span className="text-left text-xs font-medium text-slate-700 dark:text-slate-200">玩家列表 ({playersCount})</span>
+              {/* 底部进度条 */}
+              <div className="h-2 w-full bg-linear-to-r from-emerald-500 to-sky-500 rounded-full transition-all duration-500 ease-out" style={{ width: `${playersPercent}%` }} />
+            </div>
+
             {isExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
           </button>
         )}

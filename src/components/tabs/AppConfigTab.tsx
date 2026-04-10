@@ -8,7 +8,7 @@ import { Card } from "@/components/ui/card";
 import { AppVersionFormData, FormSchema } from "@/types";
 import { toast } from "sonner";
 import { deepTrim, isEqual } from "@/lib/utils";
-
+import LoadingGif from "@/components/ui/loadinggif";
 // 深度比较两个对象（内容是否相等）
 
 export default function AppVersionTab() {
@@ -62,9 +62,21 @@ export default function AppVersionTab() {
     };
   }, [loadData]);
 
-  if (loading) return <div className="p-8 text-center">加载中...</div>;
+  if (loading)
+    return (
+      <div className="p-8 text-center">
+        <LoadingGif />
+        加载中...
+      </div>
+    );
   if (error) return <div className="p-8 text-center text-destructive">{error}</div>;
-  if (!schema) return <div className="p-8 text-center">加载中...</div>;
+  if (!schema)
+    return (
+      <div className="p-8 text-center">
+        <LoadingGif />
+        加载中...
+      </div>
+    );
 
   const handleSubmit = async ({ formData: rawFormData }: { formData?: AppVersionFormData }) => {
     if (!rawFormData || submitting) return;

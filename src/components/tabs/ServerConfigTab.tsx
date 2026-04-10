@@ -24,7 +24,11 @@ export default function ServerConfigTab() {
   const [submitting, setSubmitting] = useState(false);
 
   // 群组列表（仅管理员）
-  const [groups, setGroups] = useState<{ group_id: string }[]>([]);
+  const [users, setUsers] = useState<
+    {
+      user_id: string;
+    }[]
+  >([]);
   const [currentGroupId, setCurrentGroupId] = useState<string>(() => {
     if (user?.role === "admin") return groupParam || "";
     return user?.id || "";
@@ -44,7 +48,7 @@ export default function ServerConfigTab() {
           const enabledGroups = (res.data || []).filter((g: any) => {
             return g.enabled === true || g.enabled === 1 || g.enabled === "true";
           });
-          setGroups(enabledGroups);
+          setUsers(enabledGroups);
         }
       } catch (err) {
         toast.error("加载群组列表失败");
@@ -141,13 +145,13 @@ export default function ServerConfigTab() {
   return (
     <Card className="p-6 animate-fade-slide">
       {/* 管理员显示群组下拉选择框 */}
-      {user?.role === "admin" && groups.length > 0 && (
+      {user?.role === "admin" && users.length > 0 && (
         <div className="mb-4 flex items-center gap-2 flex-wrap">
           <label className="text-sm font-medium">选择群组：</label>
           <select value={currentGroupId} onChange={(e) => setCurrentGroupId(e.target.value)} className="px-2 py-1 border rounded-md bg-background text-sm" disabled={loading}>
-            {groups.map((g) => (
-              <option key={g.group_id} value={g.group_id}>
-                {g.group_id} {g.group_id === user.id ? "(当前用户)" : ""}
+            {users.map((g) => (
+              <option key={g.user_id} value={g.user_id}>
+                {g.user_id} {g.user_id === user.id ? "(当前用户)" : ""}
               </option>
             ))}
           </select>

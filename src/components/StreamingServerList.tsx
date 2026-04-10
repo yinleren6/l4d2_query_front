@@ -5,7 +5,7 @@ import { ServerInfo } from "./ServerCard";
 import { toast } from "sonner";
 
 interface StreamingServerListProps {
-  groupId: string;
+  groupID: string;
   token?: string;
   isAutoRefresh?: boolean;
   onLoadingChange?: (loading: boolean) => void;
@@ -16,7 +16,7 @@ export interface StreamingServerListRef {
   refresh: () => void;
 }
 
-const StreamingServerList = forwardRef<StreamingServerListRef, StreamingServerListProps>(({ groupId, token, isAutoRefresh = true, onLoadingChange, onError, onServersChange }, ref) => {
+const StreamingServerList = forwardRef<StreamingServerListRef, StreamingServerListProps>(({ groupID, token, isAutoRefresh = true, onLoadingChange, onError, onServersChange }, ref) => {
   const [serversMap, setServersMap] = useState<Record<string, ServerInfo>>({});
   const [serverOrder, setServerOrder] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
@@ -29,7 +29,7 @@ const StreamingServerList = forwardRef<StreamingServerListRef, StreamingServerLi
   const autoRefreshIntervalRef = useRef<number | null>(null);
   const servers = serverOrder.map((key) => serversMap[key]).filter(Boolean);
   const isRefreshing = useRef(false);
-
+  const pendingTimeoutsRef = useRef<Record<string, number>>({});
   // 稳定回调引用，避免不必要的重连
   const onLoadingChangeRef = useRef(onLoadingChange);
   const onErrorRef = useRef(onError);
@@ -96,12 +96,12 @@ const StreamingServerList = forwardRef<StreamingServerListRef, StreamingServerLi
   }, []);
 
   const wsRef = useRef<WebSocket | null>(null);
-
+  // 手动刷新
   const refresh = useCallback(() => {
     if (isRefreshing.current) return;
     if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
       isRefreshing.current = true;
-      wsRef.current.send(JSON.stringify({ type: "refresh" }));
+      wsRef.current.send(JSON.stringify({ type: "refresh_btn" }));
       setTimeout(() => {
         isRefreshing.current = false;
       }, 5000);
@@ -112,20 +112,21 @@ const StreamingServerList = forwardRef<StreamingServerListRef, StreamingServerLi
 
   // 建立 WebSocket 连接（支持 token 鉴权）
   useEffect(() => {
-    if (!groupId || !isAutoRefresh) return;
+    if (!groupID || !isAutoRefresh) return;
     cleanup();
 
     // 【关键修改】构建 WebSocket URL，如果 token 存在则作为查询参数附加
-    let wsUrl = `${window.location.protocol === "https:" ? "wss:" : "ws:"}//${window.location.host}/api/ws/stream/${groupId}`;
+    let wsUrl = `${window.location.protocol === "https:" ? "wss:" : "ws:"}//${window.location.host}/api/ws/stream/${groupID}`;
     if (token) {
       wsUrl += `?token=${encodeURIComponent(token)}`;
     }
 
     const ws = new WebSocket(wsUrl);
+    // eslint-disable-next-line react-hooks/immutability
     wsRef.current = ws;
 
     ws.onopen = () => {
-      toast.success("嘀嘀～电波对接成功！");
+      toast.success("嘀嘀~电波对接成功！");
       console.log(new Date(Date.now()).toTimeString().split(" ")[0] + "." + new Date(Date.now()).getMilliseconds().toString().padStart(3, "0"), logInterval(), "WebSocket connected");
       reconnectAttempts.current = 0;
       setLoading(true);
@@ -142,6 +143,7 @@ const StreamingServerList = forwardRef<StreamingServerListRef, StreamingServerLi
       try {
         const message = JSON.parse(event.data);
         const { type, data } = message;
+
         if (type === "order") {
           const order = data.order as string[];
           setServerOrder(order);
@@ -159,12 +161,39 @@ const StreamingServerList = forwardRef<StreamingServerListRef, StreamingServerLi
                   PlayersList: [],
                   hasError: false,
                 };
+                // 清除旧的定时器
+                if (pendingTimeoutsRef.current[addr]) {
+                  clearTimeout(pendingTimeoutsRef.current[addr]);
+                }
+                // 设置超时定时器
+                pendingTimeoutsRef.current[addr] = window.setTimeout(() => {
+                  setServersMap((prevMap) => {
+                    const target = prevMap[addr];
+                    if (target && target.ServerName === "加载中...") {
+                      return {
+                        ...prevMap,
+                        [addr]: {
+                          ...target,
+                          ServerName: "查询失败",
+                          hasError: true,
+                        },
+                      };
+                    }
+                    return prevMap;
+                  });
+                  delete pendingTimeoutsRef.current[addr];
+                }, 5000);
               }
             });
             return newMap;
           });
         } else if (type === "server") {
           const serverData = data as ServerInfo;
+          // 清除该地址的超时定时器
+          if (pendingTimeoutsRef.current[serverData.ServerAddress]) {
+            clearTimeout(pendingTimeoutsRef.current[serverData.ServerAddress]);
+            delete pendingTimeoutsRef.current[serverData.ServerAddress];
+          }
           setServersMap((prev) => ({
             ...prev,
             [serverData.ServerAddress]: serverData,
@@ -188,7 +217,7 @@ const StreamingServerList = forwardRef<StreamingServerListRef, StreamingServerLi
 
     ws.onerror = (err) => {
       console.error("WebSocket error", err);
-      const errMsg = "WebSocket 连接错误";
+      const errMsg = "嘀嘀… 通讯已断开";
       setError(errMsg);
       onErrorRef.current?.(errMsg);
       setLoading(false);
@@ -218,7 +247,7 @@ const StreamingServerList = forwardRef<StreamingServerListRef, StreamingServerLi
       if (heartbeatIntervalRef.current) clearInterval(heartbeatIntervalRef.current);
       if (reconnectTimerRef.current) clearTimeout(reconnectTimerRef.current);
     };
-  }, [groupId, isAutoRefresh, token, connectionKey, cleanup]); // 【关键修改】依赖数组中添加 token
+  }, [groupID, isAutoRefresh, token, connectionKey, cleanup]); // 【关键修改】依赖数组中添加 token
 
   useEffect(() => {
     mountedRef.current = true;
@@ -227,6 +256,13 @@ const StreamingServerList = forwardRef<StreamingServerListRef, StreamingServerLi
       cleanup();
     };
   }, [cleanup]);
+
+  useEffect(() => {
+    return () => {
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+      Object.values(pendingTimeoutsRef.current).forEach(clearTimeout);
+    };
+  }, []);
 
   return (
     <ServerList

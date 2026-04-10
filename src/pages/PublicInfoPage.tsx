@@ -1,5 +1,4 @@
-// src/pages/PublicInfoPage.tsx
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { useParams } from "react-router-dom";
 import request from "@/api/request";
 
@@ -8,6 +7,74 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { Eye, EyeOff, Download, RefreshCw } from "lucide-react";
 import StreamingServerList, { StreamingServerListRef } from "@/components/StreamingServerList";
+import XfMusicPlayer from "@/components/MusicPlayer";
+// 🌸 动态樱花飘落动画（修复ESLint纯函数报错，流畅不卡顿）
+const FallingSakura = () => {
+  // 樱花数量
+  const sakuraCount = 20;
+
+  // ✅ 用useMemo缓存随机数据，仅初始化生成一次，解决ESLint报错
+  const sakuraStyles = useMemo(() => {
+    return Array.from({ length: sakuraCount }).map(() => ({
+      // eslint-disable-next-line react-hooks/purity
+      width: `${Math.random() * 12 + 8}px`,
+      // eslint-disable-next-line react-hooks/purity
+      height: `${Math.random() * 12 + 8}px`,
+      // eslint-disable-next-line react-hooks/purity
+      left: `${Math.random() * 100}%`,
+      // eslint-disable-next-line react-hooks/purity
+      duration: `${Math.random() * 10 + 10}s`,
+      // eslint-disable-next-line react-hooks/purity
+      delay: `${Math.random() * 5}s`,
+    }));
+  }, []);
+
+  return (
+    <div className="absolute inset-0 w-full h-full pointer-events-none overflow-hidden">
+      <style>{`
+        @keyframes sakura-fall {
+          0% {
+            transform: translateY(-10%) rotate(0deg) translateX(0);
+            opacity: 0;
+          }
+          10% {
+            opacity: 1;
+          }
+          90% {
+            opacity: 1;
+          }
+          100% {
+            transform: translateY(110vh) rotate(720deg) translateX(50px);
+            opacity: 0;
+          }
+        }
+        .sakura-petal {
+          position: absolute;
+          top: 0;
+          background: #ff8eb8;
+          border-radius: 100% 0 100% 0;
+          animation: sakura-fall linear infinite;
+          opacity: 0;
+        }
+      `}</style>
+
+      {sakuraStyles.map((style, i) => (
+        <div
+          key={i}
+          className="sakura-petal"
+          style={{
+            width: style.width,
+            height: style.height,
+            left: style.left,
+            animationDuration: style.duration,
+            animationDelay: style.delay,
+          }}
+        />
+      ))}
+    </div>
+  );
+};
+
 export default function PublicServerInfo() {
   const { groupID } = useParams<{ groupID: string }>();
   const [isHidden, setIsHidden] = useState(false);
@@ -18,24 +85,27 @@ export default function PublicServerInfo() {
   const [onlineServerCount, setOnlineServerCount] = useState(0);
   const [totalServerCount, setTotalServerCount] = useState(0);
 
+  const navigateToManage = () => {
+    const publicHost = window.location.host.replace("l.", "dash.");
+    window.open(`https://${publicHost}/login`, "_blank");
+  };
+
   // 背景图轮播
   const [currentBgIndex, setCurrentBgIndex] = useState(0);
-  const bgImages = [
-    "https://uapis.cn/api/v1/random/image?category=acg",
-    "https://www.loliapi.com/acg",
-    "https://uapis.cn/api/v1/random/image?category=acg",
-    "https://www.loliapi.com/acg",
-    "https://uapis.cn/api/v1/random/image?category=acg",
-    "https://www.loliapi.com/acg",
-  ];
+  const bgImages = ["https://uapis.cn/api/v1/random/image?category=acg", "https://www.loliapi.com/acg"];
+
   // 存储每个背景图片的 Blob URL 和加载状态
   const [bgBlobUrls, setBgBlobUrls] = useState<(string | null)[]>(() => new Array(bgImages.length).fill(null));
   const [bgReady, setBgReady] = useState<boolean[]>(() => new Array(bgImages.length).fill(false));
+  const [anyBgReady, setAnyBgReady] = useState(false);
+
   // 使用 ref 存储最新的 blob URLs，以便在卸载时释放
   const blobUrlsRef = useRef<(string | null)[]>(bgBlobUrls);
   const switchTime = 20000;
   const transitionTime = 5000;
+
   const streamingListRef = useRef<StreamingServerListRef>(null);
+
   // 轮播定时器
   useEffect(() => {
     const timer = setInterval(() => {
@@ -43,6 +113,11 @@ export default function PublicServerInfo() {
     }, switchTime);
     return () => clearInterval(timer);
   }, [bgImages.length, switchTime]);
+
+  // 监听是否有至少一张图加载完成
+  useEffect(() => {
+    setAnyBgReady(bgReady.some((ready) => ready));
+  }, [bgReady]);
 
   // 保存当前背景图
   const handleSaveBackground = () => {
@@ -63,17 +138,15 @@ export default function PublicServerInfo() {
   const handleManualRefresh = () => {
     if (streamingListRef.current) {
       streamingListRef.current.refresh();
-      // setLoadingStats(true);
       setErrorStats("");
       toast.success("数据正在飞快赶来哦 喵~");
     } else {
-      // 降级：重建组件
       setRefreshKey((prev) => prev + 1);
-      // setLoadingStats(true);
       setErrorStats("");
       toast.success("刷新中...");
     }
   };
+
   const handleServersChange = (servers: ServerInfo[]) => {
     const onlineServers = servers.filter((s) => !s.hasError);
     setOnlineServerCount(onlineServers.length);
@@ -89,6 +162,7 @@ export default function PublicServerInfo() {
       request.post("/api/public/record", { group_id: groupID }).catch((err) => console.warn("记录访问失败", err));
     }
   }, [groupID]);
+
   // 预加载所有背景图片并生成 Blob URL（并发）
   useEffect(() => {
     const loadAllImages = async () => {
@@ -110,7 +184,6 @@ export default function PublicServerInfo() {
       const newReady = [...bgReady];
       results.forEach(({ idx, blobUrl }) => {
         newBlobUrls[idx] = blobUrl;
-        // 无论是否成功，都标记为就绪（失败时使用原始 URL 显示）
         newReady[idx] = true;
       });
       setBgBlobUrls(newBlobUrls);
@@ -119,11 +192,9 @@ export default function PublicServerInfo() {
     };
     loadAllImages();
     return () => {
-      // 释放所有已创建的 Blob URL
       blobUrlsRef.current.forEach((url) => url && URL.revokeObjectURL(url));
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // 仅在挂载时执行一次
+  }, []);
 
   return (
     <div
@@ -131,12 +202,20 @@ export default function PublicServerInfo() {
       style={{
         fontFamily: "'MaokenZhuyuanTi', 'Microsoft YaHei', sans-serif",
       }}>
-      {/* 背景轮播 - 优先使用预加载的 Blob URL，否则使用原始 URL */}
+      {/* 🌟 加载背景 + 樱花飘落动画 */}
+      <div
+        className={`absolute inset-0 transition-opacity duration-1000 ease-in-out z-[-15] ${anyBgReady ? "opacity-0" : "opacity-100"}`}
+        style={{
+          background: "linear-gradient(135deg, #fdf2f8 0%, #fecdd3 30%, #e9d5ff 70%, #ddd6fe 100%)",
+        }}>
+        <FallingSakura />
+      </div>
+
+      {/* 背景轮播 */}
       {bgImages.map((_, idx) => {
         const bgUrl = bgBlobUrls[idx] || bgImages[idx];
         const isActive = idx === currentBgIndex;
         const isReady = bgReady[idx];
-        // 只要图片就绪（预加载完成或失败降级），就显示
         const shouldShow = isActive && isReady;
         return (
           <div
@@ -145,7 +224,6 @@ export default function PublicServerInfo() {
             style={{
               opacity: shouldShow ? 1 : 0,
               backgroundImage: `url("${bgUrl}")`,
-              backgroundColor: "#f9f9f980",
               zIndex: -10,
               transitionDuration: `${transitionTime}ms`,
             }}
@@ -157,15 +235,21 @@ export default function PublicServerInfo() {
       <div className="absolute inset-0 bg-slate-900/30 z-[-5]" />
 
       {/* 主内容区 */}
-      <div className={`relative z-10 animate-popBounce transition-opacity animate-backdrop-blur duration-300 ${isHidden ? "opacity-0 pointer-events-none" : "opacity-100"}`}>
+      <div className={`relative z-10 animate-popBounce transition-opacity duration-300 ${isHidden ? "opacity-0 pointer-events-none" : "opacity-100"}`}>
         <div className="max-w-7xl mx-auto p-4 md:p-6 space-y-6">
+          <div className="bg-orange-50/50 dark:bg-slate-900/85 backdrop-blur-sm rounded-xl p-5 shadow-md text-3xl flex items-center justify-between">
+            <div className="flex">🍊「悠悠の求生之路纯净多特服务器」</div>
+            <Button className="flex" onClick={navigateToManage}>
+              管理
+            </Button>
+          </div>
+
           {/* 公告 */}
           <div className="bg-orange-50/50 dark:bg-slate-900/85 backdrop-blur-sm rounded-xl p-5 shadow-md">
             <h3 className="text-xl font-bold text-slate-800 dark:text-slate-100 mb-4 flex items-center gap-2">
               <span className="text-amber-500">🔔</span> 服务器公告
             </h3>
             <div className="space-y-4">
-              {/* 公告内容  */}
               <div>
                 <h3 className="notice text-xl text-amber-500 font-bold">⭐萌新首次游玩如何进服⭐</h3>
                 <p className="mt-1 text-slate-700 dark:text-slate-300">
@@ -198,6 +282,7 @@ export default function PublicServerInfo() {
               </div>
             </div>
           </div>
+
           {/* 服务器信息 */}
           {errorStats ? (
             <div className="bg-red-50/80 dark:bg-red-900/30 rounded-xl p-4 text-center text-red-600">统计信息加载失败：{errorStats}</div>
@@ -222,15 +307,7 @@ export default function PublicServerInfo() {
           )}
 
           {/* 服务器列表 */}
-          <StreamingServerList
-            ref={streamingListRef}
-            key={refreshKey}
-            groupId={groupID!}
-            token={undefined}
-            isAutoRefresh={true}
-            onServersChange={handleServersChange} // 新增
-            onError={setErrorStats}
-          />
+          <StreamingServerList ref={streamingListRef} key={refreshKey} groupID={groupID!} token={undefined} isAutoRefresh={true} onServersChange={handleServersChange} onError={setErrorStats} />
         </div>
       </div>
 
@@ -246,6 +323,7 @@ export default function PublicServerInfo() {
           {isHidden ? <Eye size={18} className="m-auto" /> : <EyeOff size={18} className="m-auto" />}
         </Button>
       </div>
+      <XfMusicPlayer />
     </div>
   );
 }

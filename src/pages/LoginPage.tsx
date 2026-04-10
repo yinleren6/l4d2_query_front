@@ -9,7 +9,7 @@ import UnifiedLoginForm from "@/components/UnifiedLoginForm";
 export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-  const { setUser } = useAuthStore();
+  const { user, setUser } = useAuthStore();
   const abortControllerRef = useRef<AbortController | null>(null);
   const mountedRef = useRef(true);
 
@@ -20,6 +20,14 @@ export default function LoginPage() {
       mountedRef.current = false;
     };
   }, []);
+
+  useEffect(() => {
+    const hasToken = !!user?.jwtToken;
+    if (hasToken) {
+      navigate("/dashboard", { replace: true });
+      return;
+    }
+  }, [user, navigate]);
 
   // 管理员登录
   const handleAdminLogin = async (values: Record<string, string>) => {

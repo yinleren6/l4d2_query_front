@@ -41,21 +41,23 @@ export interface AppVersionFormData {
 
 // 列表类型（包含 Token）
 export interface WhitelistItem {
-  group_id: string   // 群组ID
-  added_at: string   // 添加时间
+  created_at: string      // 创建时间
   enabled: boolean   // 是否启用
-  token: string      // 群组Token
+  last_login: string // 最后登录时间
+  user_id: string   // 群组ID
+  user_name: string; // 用户名
 }
 
 // 统计总览数据类型
 export interface OverviewStats {
-  total_users: number
-  today_active: number
-  yesterday_active: number
-  week_active: number
-  today_requests: number
-  yesterday_requests: number
-  today_new_users: number
+  today_web_requests: number// 今日 Web 请求数
+  today_page_requests: number// 今日 查询 请求数
+  total_web_requests: number// 总请求数（Web）
+  total_users: number// 注册用户数（Web）
+  today_err_requests: number // 今日错误请求数（Web 日志中 status=0 的记录）
+  today_app_requests: number // 今日App请求数
+  today_new_visitor: number// 今日新访客(public)
+  total_app_users: number // 注册用户数（App）
 }
 
 // 每日统计数据（用于趋势图）

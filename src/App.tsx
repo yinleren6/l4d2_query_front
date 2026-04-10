@@ -7,16 +7,21 @@ import DashboardLayout from "@/pages/DashboardPage";
 import OverviewTab from "@/components/tabs/OverviewTab";
 import ServerConfigTab from "@/components/tabs/ServerConfigTab";
 import AppVersionTab from "@/components/tabs/AppConfigTab";
-import WhitelistTab from "@/components/tabs/WhitelistTab";
+import WhitelistTab from "@/components/tabs/UserlistTab";
 import PlayerListTab from "@/components/tabs/PlayerListTab";
-import AccountTab from "@/components/tabs/AccountTab";
+import AccountTab from "@/components/tabs/UserAccountTab";
 import LoginPage from "@/pages/LoginPage";
 import PublicServerInfo from "@/pages/PublicInfoPage";
 import { Toaster } from "sonner";
 import { useAnimatedFavicon } from "@/lib/useAnimatedFavicon";
 import NotFound from "@/pages/NotFound";
-
-const PageLoading = () => <div className="p-8 text-center">加载中...</div>;
+import LoadingGif from "@/components/ui/loadinggif";
+const PageLoading = () => (
+  <div className="p-8 text-center">
+    <LoadingGif />
+    加载中...
+  </div>
+);
 
 export default function App() {
   useAnimatedFavicon();

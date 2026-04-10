@@ -3,7 +3,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { Card } from "@/components/ui/card";
 import request from "@/api/request";
 import { toast } from "sonner";
-
+import LoadingGif from "@/components/ui/loadinggif";
 import { useAuthStore } from "@/store/AuthState";
 import { Button } from "@/components/ui/button";
 export default function PlayerListTab() {
@@ -11,7 +11,7 @@ export default function PlayerListTab() {
   const [groups, setGroups] = useState<{ group_id: string; name: string }[]>([]);
   const [selectedGroup, setSelectedGroup] = useState<string>("");
   const [loadingGroups, setLoadingGroups] = useState(false);
-  // const [refreshKey, setRefreshKey] = useState(0);
+
   const mountedRef = useRef(true);
 
   const isAdmin = user?.role === "admin";
@@ -46,7 +46,13 @@ export default function PlayerListTab() {
     window.open(`https://${publicHost}/p/${selectedGroup}`, "_blank");
   };
 
-  if (loadingGroups && isAdmin) return <div className="p-8 text-center">加载中...</div>;
+  if (loadingGroups && isAdmin)
+    return (
+      <div className="p-8 text-center">
+        <LoadingGif />
+        加载中...
+      </div>
+    );
   if (groups.length === 0 && isAdmin && !loadingGroups) {
     return <Card className="p-8 text-center text-muted-foreground">暂无可用群组，请先添加群组。</Card>;
   }
@@ -70,9 +76,9 @@ export default function PlayerListTab() {
         </div>
       )}
       {!isAdmin && (
-        <div className="flex justify-end gap-2">
-          <Button variant="secondary" size="default" onClick={navigateToPublic} className="bg-white/80 backdrop-blur-sm shadow-lg hover:bg-white/90">
-            服务器玩家列表页面
+        <div className="flex justify-start my-auto gap-2">
+          <Button variant="default" size="lg" onClick={navigateToPublic}>
+            前往查服信息页面
           </Button>
         </div>
       )}

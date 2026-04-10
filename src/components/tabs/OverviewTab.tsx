@@ -102,7 +102,7 @@ export default function OverviewTab() {
   // 加载状态 UI
   if (loading) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[400px] gap-4">
+      <div className="flex flex-col items-center justify-center min-h-100 gap-4">
         <p className="text-muted-foreground">加载统计数据中...</p>
       </div>
     );
@@ -113,7 +113,7 @@ export default function OverviewTab() {
   const isBothFailed = !overview && daily.length === 0 && error !== "";
   if (isBothFailed) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[400px] gap-4">
+      <div className="flex flex-col items-center justify-center min-h-100 gap-4">
         <AlertCircle className="w-12 h-12 text-destructive" />
         <p className="text-destructive text-lg font-medium">{error}</p>
         <Button onClick={handleRetry}>重试</Button>
@@ -128,7 +128,31 @@ export default function OverviewTab() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card className="animate-fade-slide">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">总用户数</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">今日请求数</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{overview?.today_web_requests ?? 0}</div>
+          </CardContent>
+        </Card>
+        <Card className="animate-fade-slide">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">今日查询页</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{overview?.today_page_requests ?? 0}</div>
+          </CardContent>
+        </Card>
+        <Card className="animate-fade-slide">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">累计请求数</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{overview?.total_web_requests ?? 0}</div>
+          </CardContent>
+        </Card>
+        <Card className="animate-fade-slide">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">用户数量</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{overview?.total_users ?? 0}</div>
@@ -136,26 +160,34 @@ export default function OverviewTab() {
         </Card>
         <Card className="animate-fade-slide">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">今日活跃</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">今日接口错误</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{overview?.today_active ?? 0}</div>
+            <div className="text-2xl font-bold">{overview?.today_err_requests ?? 0}</div>
           </CardContent>
         </Card>
         <Card className="animate-fade-slide">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">今日请求</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">今日新访客</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{overview?.today_requests ?? 0}</div>
+            <div className="text-2xl font-bold">{overview?.today_new_visitor ?? 0}</div>
           </CardContent>
         </Card>
         <Card className="animate-fade-slide">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">新用户</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">今日App请求</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{overview?.today_new_users ?? 0}</div>
+            <div className="text-2xl font-bold">{overview?.today_app_requests ?? 0}</div>
+          </CardContent>
+        </Card>
+        <Card className="animate-fade-slide">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">App总用户数</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{overview?.total_app_users ?? 0}</div>
           </CardContent>
         </Card>
       </div>
@@ -163,7 +195,7 @@ export default function OverviewTab() {
       {/* 图表区域：空数据占位 + 响应式高度 */}
       <Card className="p-6 animate-fade-slide">
         <h3 className="text-lg font-semibold mb-4">近7日数据趋势</h3>
-        <div className="h-[300px] sm:h-[400px] w-full">
+        <div className="h-75 sm:h-100 w-full">
           {daily.length === 0 ? (
             <div className="flex items-center justify-center h-full text-muted-foreground">暂无趋势数据</div>
           ) : (

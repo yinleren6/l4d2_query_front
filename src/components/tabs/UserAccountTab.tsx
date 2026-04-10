@@ -16,7 +16,7 @@ export default function AccountPage() {
 
   // 刷新群Token
   const handleRefreshToken = async () => {
-    if (!confirm("⚠️ 确认刷新 Token 吗？\n刷新后旧 Token 立即失效！")) return;
+    if (!confirm("⚠️ 确认刷新 Token 吗？\n刷新后旧 Token 将无法登录,请保管好新的 token！")) return;
 
     setLoading(true);
     setNewGroupToken(null);
@@ -40,7 +40,7 @@ export default function AccountPage() {
 
   return (
     <div className="max-w-3xl mx-auto p-6 space-y-6">
-      <h1 className="text-2xl font-bold">账户管理</h1>
+      <h1 className="text-2xl font-bold">账户设置</h1>
 
       <Card className="p-6 space-y-4">
         <div>
@@ -56,7 +56,7 @@ export default function AccountPage() {
         {/* 👇 刷新后才会显示新Token，只显示一次 */}
         {newGroupToken && (
           <div className="space-y-2">
-            <label className="text-sm text-red-600 font-semibold">新群登录Token（仅本次显示，刷新页面消失）</label>
+            <label className="text-sm text-red-600 font-semibold">新登录Token（仅本次显示，刷新页面消失）</label>
             <Input value={newGroupToken} readOnly className="font-mono text-xs border-red-400" />
             <Button
               variant="secondary"
