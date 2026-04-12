@@ -42,7 +42,7 @@ export default function ServerConfigTab() {
     const fetchGroups = async () => {
       try {
         const res = await request.get("/api/admin/groups");
-        console.log("群组数据示例:", res.data[0]);
+        // console.log("群组数据示例:", res.data[0]);
         if (mountedRef.current) {
           // ✅ 只显示启用的群组
           const enabledGroups = (res.data || []).filter((g: any) => {
@@ -98,8 +98,8 @@ export default function ServerConfigTab() {
     const trimmedData = deepTrim(rawFormData);
     const finalData = {
       ...trimmedData,
-      version: trimmedData["version"] || 0,
-      last_update: 0,
+      version: trimmedData["version"] || "0",
+      last_update: "",
       server_list: trimmedData["server_list"] || [],
     };
     if (originalData && isEqual(finalData, deepTrim(originalData))) {
@@ -109,9 +109,15 @@ export default function ServerConfigTab() {
     setSubmitting(true);
     try {
       let response;
+      console.log(user?.role === "admin");
+      console.log(currentGroupId !== user?.id);
+      console.log(user?.role === "admin" && currentGroupId !== user.id);
+
       if (user?.role === "admin" && currentGroupId !== user.id) {
+        console.log("分支 1 ");
         response = await request.put(`/api/admin/config/${currentGroupId}`, finalData);
       } else {
+        console.log("分支 2 ");
         response = await request.post("/api/save-user-config", finalData);
       }
       const savedData = response.data;

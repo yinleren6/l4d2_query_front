@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useMemo } from "react";
+import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { useParams } from "react-router-dom";
 import request from "@/api/request";
 
@@ -8,12 +8,12 @@ import { toast } from "sonner";
 import { Eye, EyeOff, Download, RefreshCw } from "lucide-react";
 import StreamingServerList, { StreamingServerListRef } from "@/components/StreamingServerList";
 import XfMusicPlayer from "@/components/MusicPlayer";
-// 🌸 动态樱花飘落动画（修复ESLint纯函数报错，流畅不卡顿）
+// 🌸 动态樱花飘落动画
 const FallingSakura = () => {
   // 樱花数量
   const sakuraCount = 20;
 
-  // ✅ 用useMemo缓存随机数据，仅初始化生成一次，解决ESLint报错
+  //   用useMemo缓存随机数据，仅初始化生成一次
   const sakuraStyles = useMemo(() => {
     return Array.from({ length: sakuraCount }).map(() => ({
       // eslint-disable-next-line react-hooks/purity
@@ -85,14 +85,14 @@ export default function PublicServerInfo() {
   const [onlineServerCount, setOnlineServerCount] = useState(0);
   const [totalServerCount, setTotalServerCount] = useState(0);
 
-  const navigateToManage = () => {
+  const navigateToDashPage = () => {
     const publicHost = window.location.host.replace("l.", "dash.");
     window.open(`https://${publicHost}/login`, "_blank");
   };
 
   // 背景图轮播
   const [currentBgIndex, setCurrentBgIndex] = useState(0);
-  const bgImages = ["https://uapis.cn/api/v1/random/image?category=acg", "https://www.loliapi.com/acg"];
+  const bgImages = ["https://uapis.cn/api/v1/random/image?category=acg", "https://www.loliapi.com/acg", "https://uapis.cn/api/v1/random/image?category=acg", "https://www.loliapi.com/acg"];
 
   // 存储每个背景图片的 Blob URL 和加载状态
   const [bgBlobUrls, setBgBlobUrls] = useState<(string | null)[]>(() => new Array(bgImages.length).fill(null));
@@ -103,7 +103,7 @@ export default function PublicServerInfo() {
   const blobUrlsRef = useRef<(string | null)[]>(bgBlobUrls);
   const switchTime = 20000;
   const transitionTime = 5000;
-
+  const lastRef = useRef(0);
   const streamingListRef = useRef<StreamingServerListRef>(null);
 
   // 轮播定时器
@@ -134,8 +134,16 @@ export default function PublicServerInfo() {
     }
   };
 
-  // 手动刷新
-  const handleManualRefresh = () => {
+  // 手动刷新（3秒防抖）
+  const handleManualRefresh = useCallback(() => {
+    // 3秒内重复点击直接忽略
+    const now = Date.now();
+    if (now - lastRef.current < 3000) {
+      toast.success("你冲得太快了 喵~");
+      return;
+    }
+    lastRef.current = now;
+
     if (streamingListRef.current) {
       streamingListRef.current.refresh();
       setErrorStats("");
@@ -145,7 +153,7 @@ export default function PublicServerInfo() {
       setErrorStats("");
       toast.success("刷新中...");
     }
-  };
+  }, []);
 
   const handleServersChange = (servers: ServerInfo[]) => {
     const onlineServers = servers.filter((s) => !s.hasError);
@@ -198,7 +206,7 @@ export default function PublicServerInfo() {
 
   return (
     <div
-      className="min-h-screen relative overflow-hidden"
+      className="min-h-screen relative"
       style={{
         fontFamily: "'MaokenZhuyuanTi', 'Microsoft YaHei', sans-serif",
       }}>
@@ -239,7 +247,7 @@ export default function PublicServerInfo() {
         <div className="max-w-7xl mx-auto p-4 md:p-6 space-y-6">
           <div className="bg-orange-50/50 dark:bg-slate-900/85 backdrop-blur-sm rounded-xl p-5 shadow-md text-3xl flex items-center justify-between">
             <div className="flex">🍊「悠悠の求生之路纯净多特服务器」</div>
-            <Button className="flex" onClick={navigateToManage}>
+            <Button className="flex" onClick={navigateToDashPage}>
               管理
             </Button>
           </div>
@@ -287,7 +295,7 @@ export default function PublicServerInfo() {
           {errorStats ? (
             <div className="bg-red-50/80 dark:bg-red-900/30 rounded-xl p-4 text-center text-red-600">统计信息加载失败：{errorStats}</div>
           ) : (
-            <div className="bg-white/60 dark:bg-slate-900/85 backdrop-blur-sm rounded-xl p-4 shadow-md flex items-center justify-between">
+            <div className="sticky top-5 z-10 bg-white/60 dark:bg-slate-900/85 backdrop-blur-sm rounded-xl p-4 shadow-md flex items-center justify-between">
               <div className="flex items-center gap-1">
                 <span className="text-slate-700 dark:text-slate-300 font-medium">在线玩家：</span>
                 <span className="text-orange-500 dark:text-orange-400 font-bold">
@@ -312,7 +320,7 @@ export default function PublicServerInfo() {
       </div>
 
       {/* 右上角浮动按钮组 */}
-      <div className="fixed top-4 right-4 z-50 flex gap-2">
+      <div className="fixed top-2 right-3 z-50 flex gap-2">
         {isHidden && (
           <Button variant="secondary" size="default" onClick={handleSaveBackground} className="bg-white/80 backdrop-blur-sm shadow-lg hover:bg-white/90">
             <Download size={18} className="mr-1" />

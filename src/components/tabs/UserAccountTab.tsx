@@ -50,7 +50,7 @@ export default function AccountPage() {
 
         <div>
           <label className="text-sm text-muted-foreground">角色</label>
-          <Input value={user.role === "admin" ? "管理员" : "普通用户"} readOnly />
+          <Input value={user.role === "admin" ? "管理员" : "用户"} readOnly />
         </div>
 
         {/* 👇 刷新后才会显示新Token，只显示一次 */}

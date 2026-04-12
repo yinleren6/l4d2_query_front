@@ -1,6 +1,6 @@
 // src/components/ServerCard.tsx
 import { useState } from "react";
-import { Copy, ChevronDown, ChevronUp } from "lucide-react";
+import { Copy, ChevronDown } from "lucide-react";
 import { toast } from "sonner";
 
 export interface Player {
@@ -104,27 +104,38 @@ export default function ServerCard({ server, onJoin, onCopy, className = "" }: S
               <div className="h-2 w-full bg-linear-to-r from-emerald-500 to-sky-500 rounded-full transition-all duration-500 ease-out" style={{ width: `${playersPercent}%` }} />
             </div>
 
-            {isExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+            {/* 👇 图标旋转动画（替换原来的两个图标切换） */}
+            <div className="transition-transform duration-300 ease-in-out">
+              <ChevronDown size={14} className={isExpanded ? "rotate-180" : ""} />
+            </div>
           </button>
         )}
 
-        {isExpanded && !hasError && (
-          <div className="mt-2 bg-blue-50/50 dark:bg-slate-800/30 p-2 rounded-lg">
-            {server.PlayersList && server.PlayersList.length > 0 ? (
-              <div className="space-y-1">
-                {server.PlayersList.map((player, idx) => (
-                  <div key={idx} className="flex items-center gap-2 text-xs h-6 px-2 rounded hover:bg-slate-100 dark:hover:bg-slate-800/60">
-                    <span className="w-7 shrink-0 text-slate-600 dark:text-slate-400">[{player.score}]</span>
-                    <span className="w-16 shrink-0 text-left text-slate-500 dark:text-slate-500">{player.time}</span>
-                    <div className="flex-1 overflow-hidden text-slate-700 dark:text-slate-300">
-                      <div className="whitespace-nowrap overflow-x-auto scrollbar-hide">{player.name}</div>
+        {/*  折叠动画  */}
+        {!hasError && (
+          <div
+            className={`
+        overflow-hidden transition-all duration-500 ease
+        ${isExpanded ? "max-h-125 opacity-100 mt-2" : "max-h-0 opacity-0"}
+      `}>
+            {/* 玩家列表内容  */}
+            <div className="bg-blue-50/50 dark:bg-slate-800/30 p-2 rounded-lg">
+              {server.PlayersList && server.PlayersList.length > 0 ? (
+                <div className="space-y-1">
+                  {server.PlayersList.map((player, idx) => (
+                    <div key={idx} className="flex items-center gap-2 text-xs h-6 px-2 rounded hover:bg-slate-100 dark:hover:bg-slate-800/60">
+                      <span className="w-7 shrink-0 text-slate-600 dark:text-slate-400">[{player.score}]</span>
+                      <span className="w-16 shrink-0 text-left text-slate-500 dark:text-slate-500">{player.time}</span>
+                      <div className="flex-1 overflow-hidden text-slate-700 dark:text-slate-300">
+                        <div className="whitespace-nowrap overflow-x-auto scrollbar-hide">{player.name}</div>
+                      </div>
                     </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="text-slate-400 text-center py-2 text-xs">没有玩家在线</div>
-            )}
+                  ))}
+                </div>
+              ) : (
+                <div className="text-slate-400 text-center py-2 text-xs">没有玩家在线</div>
+              )}
+            </div>
           </div>
         )}
 

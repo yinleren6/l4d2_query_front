@@ -32,7 +32,7 @@ export default function AppVersionTab() {
         : {
             app_version: "0.0.0",
             download_url: "",
-            last_update: 0,
+            last_update: "",
             changelog: "",
           };
       setFormData(configData);
@@ -86,7 +86,6 @@ export default function AppVersionTab() {
       ...trimmedData,
       app_version: trimmedData["app_version"] || "0.0.0",
       download_url: trimmedData["download_url"] || "",
-      last_update: 0,
       changelog: trimmedData["changelog"] || "",
     };
 
@@ -99,7 +98,7 @@ export default function AppVersionTab() {
     setSubmitting(true);
     try {
       // 发送保存请求，并期望后端返回保存后的完整配置对象（包含服务器生成的时间戳等）
-      const response = await request.post("/api/save-app-config", finalData);
+      const response = await request.post("/api/admin/save-app-config", finalData);
       const savedData = response.data; // 后端返回最新数据
 
       if (!mountedRef.current) return;
