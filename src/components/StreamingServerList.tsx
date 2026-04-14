@@ -271,7 +271,7 @@ const StreamingServerList = forwardRef<StreamingServerListRef, StreamingServerLi
       error={error}
       emptyMessage="暂无服务器信息"
       placeholderCount={9}
-      containerClassName="grid grid-cols-[repeat(auto-fill,minmax(320px,1fr))] gap-4 w-full"
+      containerClassName="grid grid-cols-[repeat(auto-fill,minmax(320px,1fr))] gap-3 w-full"
       cardClassName="w-full"
     />
   );

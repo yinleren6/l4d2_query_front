@@ -60,7 +60,7 @@ export default function PlayerListTab() {
   return (
     <div className="space-y-6">
       {isAdmin && (
-        <div className="flex items-center gap-4 flex-wrap">
+        <div className="flex items-center gap-3 flex-wrap">
           <span className="text-sm font-medium">选择群组：</span>
           <select value={selectedGroup} onChange={(e) => setSelectedGroup(e.target.value)} className="px-3 py-1.5 border rounded-md bg-background text-sm">
             {groups.map((g) => (

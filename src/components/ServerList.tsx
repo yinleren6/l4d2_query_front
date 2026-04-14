@@ -19,7 +19,7 @@ export default function ServerList({
   error,
   emptyMessage = "暂无服务器信息",
   placeholderCount = 9,
-  containerClassName = "flex flex-wrap justify-center gap-4 p-4",
+  containerClassName = "flex flex-wrap justify-center gap-3 p-4",
   cardClassName = "",
 }: ServerListProps) {
   if (loading) {

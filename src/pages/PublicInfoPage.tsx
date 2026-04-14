@@ -5,7 +5,7 @@ import request from "@/api/request";
 import type { ServerInfo } from "@/components/ServerCard";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { Eye, EyeOff, Download, RefreshCw } from "lucide-react";
+import { Eye, EyeOff, Download, RefreshCw, ChevronDown } from "lucide-react";
 import StreamingServerList, { StreamingServerListRef } from "@/components/StreamingServerList";
 import XfMusicPlayer from "@/components/MusicPlayer";
 // 🌸 动态樱花飘落动画
@@ -92,7 +92,14 @@ export default function PublicServerInfo() {
 
   // 背景图轮播
   const [currentBgIndex, setCurrentBgIndex] = useState(0);
-  const bgImages = ["https://uapis.cn/api/v1/random/image?category=acg", "https://www.loliapi.com/acg", "https://uapis.cn/api/v1/random/image?category=acg", "https://www.loliapi.com/acg"];
+  const bgImages = [
+    "https://uapis.cn/api/v1/random/image?category=acg",
+    "https://www.loliapi.com/acg",
+    "https://uapis.cn/api/v1/random/image?category=acg",
+    "https://www.loliapi.com/acg",
+    "https://uapis.cn/api/v1/random/image?category=acg",
+    "https://www.loliapi.com/acg",
+  ];
 
   // 存储每个背景图片的 Blob URL 和加载状态
   const [bgBlobUrls, setBgBlobUrls] = useState<(string | null)[]>(() => new Array(bgImages.length).fill(null));
@@ -106,6 +113,18 @@ export default function PublicServerInfo() {
   const lastRef = useRef(0);
   const streamingListRef = useRef<StreamingServerListRef>(null);
 
+  const [isNoticeExpanded, setIsNoticeExpanded] = useState(true); // 默认展开
+  const toggleNotice = () => setIsNoticeExpanded(!isNoticeExpanded);
+
+  // 3 秒后自动折叠公告
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsNoticeExpanded(false);
+    }, 5000);
+
+    // 组件卸载清除定时器
+    return () => clearTimeout(timer);
+  }, []);
   // 轮播定时器
   useEffect(() => {
     const timer = setInterval(() => {
@@ -243,65 +262,79 @@ export default function PublicServerInfo() {
       <div className="absolute inset-0 bg-slate-900/30 z-[-5]" />
 
       {/* 主内容区 */}
-      <div className={`relative z-10 animate-popBounce transition-opacity duration-300 ${isHidden ? "opacity-0 pointer-events-none" : "opacity-100"}`}>
-        <div className="max-w-7xl mx-auto p-4 md:p-6 space-y-6">
-          <div className="bg-orange-50/50 dark:bg-slate-900/85 backdrop-blur-sm rounded-xl p-5 shadow-md text-3xl flex items-center justify-between">
+      <div className={`relative z-10 animate-popBounce transition-opacity duration-1000 ${isHidden ? "opacity-0 pointer-events-none" : "opacity-100"}`}>
+        <div className="max-w-7xl mx-auto p-4 md:p-6">
+          {/* 顶部标题栏：只留动画，无冲突 */}
+          <div
+            onClick={toggleNotice}
+            className="bg-orange-50/50 dark:bg-slate-900/85 animate-backdrop-blur rounded-xl p-5 shadow-md text-3xl flex items-center justify-between cursor-pointer hover:bg-orange-100/50 dark:hover:bg-slate-800/90 transition-colors">
             <div className="flex">🍊「悠悠の求生之路纯净多特服务器」</div>
-            <Button className="flex" onClick={navigateToDashPage}>
-              管理
-            </Button>
-          </div>
-
-          {/* 公告 */}
-          <div className="bg-orange-50/50 dark:bg-slate-900/85 backdrop-blur-sm rounded-xl p-5 shadow-md">
-            <h3 className="text-xl font-bold text-slate-800 dark:text-slate-100 mb-4 flex items-center gap-2">
-              <span className="text-amber-500">🔔</span> 服务器公告
-            </h3>
-            <div className="space-y-4">
-              <div>
-                <h3 className="notice text-xl text-amber-500 font-bold">⭐萌新首次游玩如何进服⭐</h3>
-                <p className="mt-1 text-slate-700 dark:text-slate-300">
-                  加入悠悠
-                  <a href="https://qm.qq.com/q/ErkMWZ9G6s" className="text-sky-500" rel="noopener noreferrer">
-                    Q群1067085569
-                  </a>
-                  ，点击右侧按钮即可全自动进入！但还是建议新人先看悠悠进服向导»
-                </p>
-              </div>
-              <div>
-                <h3 className="notice text-xl text-amber-500 font-bold">⭐为什么进服后皮肤没了⭐</h3>
-                <p className="mt-1 text-slate-700 dark:text-slate-300">进服速度太快导致模组来不及加载！建议先启动游戏等模组全部加载完毕，再切屏回来点击进服按钮</p>
-              </div>
-              <div>
-                <h3 className="notice text-xl text-amber-500 font-bold">⭐进服显示尚未安装战役⭐</h3>
-                <p className="mt-1 text-slate-700 dark:text-slate-300">请检查指定三方图是否安装完毕！若是工坊订阅的请看进度条是否走完，先进游戏再切屏回来点按钮</p>
-              </div>
-              <div>
-                <h3 className="notice text-xl text-amber-500 font-bold">⭐点击进服按钮没有反应⭐</h3>
-                <p className="mt-1 text-slate-700 dark:text-slate-300">你是直接在微信或QQ内打开的进站吗？请将链接复制到浏览器访问，或点击右上角地球图标跳转浏览器内</p>
-              </div>
-              <div>
-                <h3 className="notice text-xl text-amber-500 font-bold">⭐进服显示会话已不可用⭐</h3>
-                <p className="mt-1 text-slate-700 dark:text-slate-300">大概率是同时进入的人太多服务器处理不过来，请稍等几秒后重新进吧，或者进入其他子服试试</p>
-              </div>
-              <div>
-                <h3 className="notice text-xl text-amber-500 font-bold">⭐服务器指定的app id无效⭐</h3>
-                <p className="mt-1 text-slate-700 dark:text-slate-300">Steam偶尔抽风导致的！建议将窗口里的IP地址复制下来，然后再手动connect IP即可进服</p>
+            <div className="flex items-center gap-3">
+              <Button
+                className="flex"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  navigateToDashPage();
+                }}>
+                管理
+              </Button>
+              <div className="transition-transform duration-1000 ease-in-out text-slate-600 dark:text-slate-300">
+                <ChevronDown size={18} className={isNoticeExpanded ? "rotate-180" : ""} />
               </div>
             </div>
           </div>
-
-          {/* 服务器信息 */}
+          {/* 公告折叠面板 */}
+          <div className={`overflow-hidden transition-all duration-1000 ease-in-out ${isNoticeExpanded ? "max-h-500 opacity-100 mt-3" : "max-h-0 opacity-0 mt-0"}`}>
+            {/* 公告卡片：只留动画 */}
+            <div className="bg-orange-50/50 dark:bg-slate-900/85 animate-backdrop-blur rounded-xl p-5 shadow-md">
+              <h3 className="text-xl font-bold text-slate-800 dark:text-slate-100 mb-4 flex items-center gap-2">
+                <span className="text-amber-500">🔔</span> 服务器公告
+              </h3>
+              <div className="space-y-4">
+                <div>
+                  <h3 className="notice text-xl text-amber-500 font-bold">⭐萌新首次游玩如何进服⭐</h3>
+                  <p className="mt-1 text-slate-700 dark:text-slate-300">
+                    加入悠悠
+                    <a href="https://qm.qq.com/q/ErkMWZ9G6s" className="text-sky-500" rel="noopener noreferrer">
+                      Q群1067085569
+                    </a>
+                    ，点击右侧按钮即可全自动进入！但还是建议新人先看悠悠进服向导»
+                  </p>
+                </div>
+                <div>
+                  <h3 className="notice text-xl text-amber-500 font-bold">⭐为什么进服后皮肤没了⭐</h3>
+                  <p className="mt-1 text-slate-700 dark:text-slate-300">进服速度太快导致模组来不及加载！建议先启动游戏等模组全部加载完毕，再切屏回来点击进服按钮</p>
+                </div>
+                <div>
+                  <h3 className="notice text-xl text-amber-500 font-bold">⭐进服显示尚未安装战役⭐</h3>
+                  <p className="mt-1 text-slate-700 dark:text-slate-300">请检查指定三方图是否安装完毕！若是工坊订阅的请看进度条是否走完，先进游戏再切屏回来点按钮</p>
+                </div>
+                <div>
+                  <h3 className="notice text-xl text-amber-500 font-bold">⭐点击进服按钮没有反应⭐</h3>
+                  <p className="mt-1 text-slate-700 dark:text-slate-300">你是直接在微信或QQ内打开的进站吗？请将链接复制到浏览器访问，或点击右上角地球图标跳转浏览器内</p>
+                </div>
+                <div>
+                  <h3 className="notice text-xl text-amber-500 font-bold">⭐进服显示会话已不可用⭐</h3>
+                  <p className="mt-1 text-slate-700 dark:text-slate-300">大概率是同时进入的人太多服务器处理不过来，请稍等几秒后重新进吧，或者进入其他子服试试</p>
+                </div>
+                <div>
+                  <h3 className="notice text-xl text-amber-500 font-bold">⭐服务器指定的app id无效⭐</h3>
+                  <p className="mt-1 text-slate-700 dark:text-slate-300">Steam偶尔抽风导致的！建议将窗口里的IP地址复制下来，然后再手动connect IP即可进服</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          {/* 服务器信息：只留动画 */}
           {errorStats ? (
-            <div className="bg-red-50/80 dark:bg-red-900/30 rounded-xl p-4 text-center text-red-600">统计信息加载失败：{errorStats}</div>
+            <div className="bg-red-50/80 dark:bg-red-900/30 rounded-xl p-4 text-center text-red-600 mt-3">统计信息加载失败：{errorStats}</div>
           ) : (
-            <div className="sticky top-5 z-10 bg-white/60 dark:bg-slate-900/85 backdrop-blur-sm rounded-xl p-4 shadow-md flex items-center justify-between">
+            <div className="sticky top-5 z-10 bg-white/60 dark:bg-slate-900/85 animate-backdrop-blur rounded-xl p-4 shadow-md flex items-center justify-between mt-3">
               <div className="flex items-center gap-1">
                 <span className="text-slate-700 dark:text-slate-300 font-medium">在线玩家：</span>
                 <span className="text-orange-500 dark:text-orange-400 font-bold">
                   {onlinePlayerCount}/{totalMaxPlayerCount}
                 </span>
-                <Button variant="secondary" size="default" onClick={handleManualRefresh} className="bg-white/80 backdrop-blur-sm shadow-lg hover:bg-white/90">
+                <Button variant="secondary" size="default" onClick={handleManualRefresh} className="bg-white/80 animate-backdrop-blur shadow-lg hover:bg-white/90">
                   <RefreshCw size={18} />
                 </Button>
               </div>
@@ -313,21 +346,21 @@ export default function PublicServerInfo() {
               </div>
             </div>
           )}
-
           {/* 服务器列表 */}
-          <StreamingServerList ref={streamingListRef} key={refreshKey} groupID={groupID!} token={undefined} isAutoRefresh={true} onServersChange={handleServersChange} onError={setErrorStats} />
+          <div className="mt-3">
+            <StreamingServerList ref={streamingListRef} key={refreshKey} groupID={groupID!} token={undefined} isAutoRefresh={true} onServersChange={handleServersChange} onError={setErrorStats} />
+          </div>
         </div>
       </div>
-
-      {/* 右上角浮动按钮组 */}
+      {/* 右上角按钮：只留动画 */}
       <div className="fixed top-2 right-3 z-50 flex gap-2">
         {isHidden && (
-          <Button variant="secondary" size="default" onClick={handleSaveBackground} className="bg-white/80 backdrop-blur-sm shadow-lg hover:bg-white/90">
+          <Button variant="secondary" size="default" onClick={handleSaveBackground} className="bg-white/80 animate-backdrop-blur shadow-lg hover:bg-white/90">
             <Download size={18} className="mr-1" />
             保存背景
           </Button>
         )}
-        <Button variant="secondary" size="default" onClick={() => setIsHidden(!isHidden)} className="bg-white/80 backdrop-blur-sm shadow-lg hover:bg-white/90">
+        <Button variant="secondary" size="default" onClick={() => setIsHidden(!isHidden)} className="bg-white/80 animate-backdrop-blur shadow-lg hover:bg-white/90">
           {isHidden ? <Eye size={18} className="m-auto" /> : <EyeOff size={18} className="m-auto" />}
         </Button>
       </div>
