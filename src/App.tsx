@@ -6,6 +6,7 @@ import { DashOnlyRoute, PublicOnlyRoute } from "@/components/DomainRoute";
 import DashboardLayout from "@/pages/DashboardPage";
 import OverviewTab from "@/components/tabs/OverviewTab";
 import ServerConfigTab from "@/components/tabs/ServerConfigTab";
+import AboutTab from "@/components/tabs/AboutTab";
 import AppVersionTab from "@/components/tabs/AppConfigTab";
 import WhitelistTab from "@/components/tabs/UserlistTab";
 import PlayerListTab from "@/components/tabs/PlayerListTab";
@@ -53,6 +54,7 @@ export default function App() {
               <Route path="whitelist" element={<WhitelistTab />} />
               <Route path="playerlist" element={<PlayerListTab />} />
               <Route path="account" element={<AccountTab />} />
+              <Route path="about" element={<AboutTab />} />
             </Route>
           </Route>
 

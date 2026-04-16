@@ -39,6 +39,22 @@ export interface AppVersionFormData {
   changelog: string
 }
 
+export interface LatestVersionInfo {
+  lastestFrontversion: string;
+  lastestFrontbuildTime: string;
+
+  lastestBackendVersion: string;
+  lastestBackendBuildTime: string;
+  force: boolean;
+  message?: string;
+}
+export interface CurrentVersion {
+  frontVersion: string;
+  backendVersion: string;
+  frontBuildTime: string;
+  backendBuildTime: string;
+}
+
 // 列表类型（包含 Token）
 export interface WhitelistItem {
   created_at: string      // 创建时间

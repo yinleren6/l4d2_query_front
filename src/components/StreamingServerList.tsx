@@ -11,12 +11,13 @@ interface StreamingServerListProps {
   onLoadingChange?: (loading: boolean) => void;
   onError?: (error: string) => void;
   onServersChange?: (servers: ServerInfo[]) => void;
+  onVersionUpdate?: (data: { version: string; force: boolean; message?: string }) => void;
 }
 export interface StreamingServerListRef {
   refresh: () => void;
 }
 
-const StreamingServerList = forwardRef<StreamingServerListRef, StreamingServerListProps>(({ groupID, token, isAutoRefresh = true, onLoadingChange, onError, onServersChange }, ref) => {
+const StreamingServerList = forwardRef<StreamingServerListRef, StreamingServerListProps>(({ groupID, token, isAutoRefresh = true, onLoadingChange, onError, onServersChange, onVersionUpdate }, ref) => {
   const [serversMap, setServersMap] = useState<Record<string, ServerInfo>>({});
   const [serverOrder, setServerOrder] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
@@ -102,6 +103,7 @@ const StreamingServerList = forwardRef<StreamingServerListRef, StreamingServerLi
     if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
       isRefreshing.current = true;
       wsRef.current.send(JSON.stringify({ type: "refresh_btn" }));
+      wsRef.current.send(JSON.stringify({ type: "check_update" }));
       setTimeout(() => {
         isRefreshing.current = false;
       }, 5000);
@@ -137,6 +139,7 @@ const StreamingServerList = forwardRef<StreamingServerListRef, StreamingServerLi
           ws.send(JSON.stringify({ type: "ping" }));
         }
       }, 30000);
+      ws.send(JSON.stringify({ type: "check_update" }));
     };
 
     ws.onmessage = (event) => {
@@ -209,6 +212,9 @@ const StreamingServerList = forwardRef<StreamingServerListRef, StreamingServerLi
           onLoadingChangeRef.current?.(false);
         } else if (type === "pong") {
           // 心跳响应
+        } else if (type === "version_update") {
+          // 假设后端推送格式：{ type: "version_update", data: { version: "v1.2.3", force: false, message: "新增功能" } }
+          onVersionUpdate?.(data);
         }
       } catch (e) {
         console.error("解析 WebSocket 消息失败", e);
@@ -247,7 +253,7 @@ const StreamingServerList = forwardRef<StreamingServerListRef, StreamingServerLi
       if (heartbeatIntervalRef.current) clearInterval(heartbeatIntervalRef.current);
       if (reconnectTimerRef.current) clearTimeout(reconnectTimerRef.current);
     };
-  }, [groupID, isAutoRefresh, token, connectionKey, cleanup]); // 【关键修改】依赖数组中添加 token
+  }, [groupID, isAutoRefresh, token, connectionKey, cleanup, onVersionUpdate]); // 【关键修改】依赖数组中添加 token
 
   useEffect(() => {
     mountedRef.current = true;

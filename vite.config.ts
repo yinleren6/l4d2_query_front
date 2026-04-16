@@ -20,7 +20,6 @@ const generateVersionPlugin = () => {
         try {
           const raw = fs.readFileSync(distVersionPath, 'utf-8')
           backupVersionData = JSON.parse(raw)
-          console.log('[版本插件] 已备份现有的 dist/version.json')
         } catch (e) {
           console.warn('[版本插件] 备份现有版本文件失败，将忽略', e)
           backupVersionData = null
@@ -100,7 +99,6 @@ const generateVersionPlugin = () => {
       if (backupVersionData && typeof backupVersionData === 'object') {
         // 保留备份中的所有字段
         finalData = { ...backupVersionData }
-        console.log('[版本插件] 检测到备份数据，将保留其中的后端字段')
       }
 
       // 将前端字段合并进去（如果字段已存在则覆盖，不存在则添加）
@@ -113,9 +111,6 @@ const generateVersionPlugin = () => {
       console.log('\n📋 版本更新完成')
       console.log(`Frontversion: ${oldVersion} --> ${fullVersion}`)
       console.log(`FrontbuildTime: ${oldBuildTime} --> ${buildTime}`)
-      if (backupVersionData) {
-        console.log('✅ 已保留原有后端字段（backendVersion, backendBuildTime 等）')
-      }
       console.log(`📁 dist/version.json 已生成\n`)
     },
   }

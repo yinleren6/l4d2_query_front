@@ -5,9 +5,10 @@ import request from "@/api/request";
 import type { ServerInfo } from "@/components/ServerCard";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+// import { LatestVersionInfo } from "@/types";
 import { Eye, EyeOff, Download, RefreshCw, ChevronDown } from "lucide-react";
 import StreamingServerList, { StreamingServerListRef } from "@/components/StreamingServerList";
-import XfMusicPlayer from "@/components/MusicPlayer";
+// import XfMusicPlayer from "@/components/MusicPlayer";
 // 🌸 动态樱花飘落动画
 const FallingSakura = () => {
   // 樱花数量
@@ -84,6 +85,18 @@ export default function PublicServerInfo() {
   const [totalMaxPlayerCount, setTotalMaxPlayerCount] = useState(0);
   const [onlineServerCount, setOnlineServerCount] = useState(0);
   const [totalServerCount, setTotalServerCount] = useState(0);
+  const [hasNewVersion, setHasNewVersion] = useState(false);
+  const handleVersionUpdate = useCallback((data: any) => {
+    setHasNewVersion(true);
+    if (!showPage) {
+      // 可选：显示 toast 提示
+      if (data.force) {
+        toast.warning(`服务已更新：${data.version}`);
+      } else {
+        toast.info(`发现新版本 ${data.version}`);
+      }
+    }
+  }, []);
 
   const navigateToDashPage = () => {
     const publicHost = window.location.host.replace("l.", "dash.");
@@ -114,8 +127,18 @@ export default function PublicServerInfo() {
   const streamingListRef = useRef<StreamingServerListRef>(null);
 
   const [isNoticeExpanded, setIsNoticeExpanded] = useState(true); // 默认展开
+  const [showPage, setShowPage] = useState(true);
   const toggleNotice = () => setIsNoticeExpanded(!isNoticeExpanded);
-
+  useEffect(() => {
+    // useParams 获取的是字符串类型，
+    if (groupID === "1067085569") {
+      setShowPage(true);
+    }
+    // 可选：如果需要非222时隐藏，取消下面注释
+    else {
+      setShowPage(false);
+    }
+  }, [groupID]); // 依赖 groupID，变化时自动触发
   // 3 秒后自动折叠公告
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -225,7 +248,7 @@ export default function PublicServerInfo() {
 
   return (
     <div
-      className="min-h-screen relative"
+      className="min-h-screen flex flex-col relative"
       style={{
         fontFamily: "'MaokenZhuyuanTi', 'Microsoft YaHei', sans-serif",
       }}>
@@ -262,22 +285,35 @@ export default function PublicServerInfo() {
       <div className="absolute inset-0 bg-slate-900/30 z-[-5]" />
 
       {/* 主内容区 */}
-      <div className={`relative z-10 animate-popBounce transition-opacity duration-1000 ${isHidden ? "opacity-0 pointer-events-none" : "opacity-100"}`}>
+      <div className={`relative z-10 animate-popBounce transition-opacity duration-1000 grow ${isHidden ? "opacity-0 pointer-events-none" : "opacity-100"}`}>
         <div className="max-w-7xl mx-auto p-4 md:p-6">
           {/* 顶部标题栏：只留动画，无冲突 */}
           <div
             onClick={toggleNotice}
             className="bg-orange-50/50 dark:bg-slate-900/85 animate-backdrop-blur rounded-xl p-5 shadow-md text-3xl flex items-center justify-between cursor-pointer hover:bg-orange-100/50 dark:hover:bg-slate-800/90 transition-colors">
-            <div className="flex">🍊「悠悠の求生之路纯净多特服务器」</div>
-            <div className="flex items-center gap-3">
-              <Button
-                className="flex"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  navigateToDashPage();
-                }}>
-                管理
-              </Button>
+            {/* 左侧：标题（保持不变） */}
+            {showPage ? <div className="flex">🍊「悠悠・荣誉时刻・求生大佬・荣誉加冕台」</div> : <div className="flex">🍊「悠悠の求生之路纯净多特服务器」</div>}
+
+            {/* 右侧：管理按钮 + 下拉箭头（核心修改：包裹在一起，统一靠右） */}
+            <div className="flex items-center gap-4">
+              {!showPage && (
+                <Button
+                  className="flex relative"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    navigateToDashPage();
+                  }}>
+                  {hasNewVersion ? <span>有更新</span> : <span>管理</span>}
+                  {hasNewVersion && (
+                    <span className="absolute -top-1 -right-1 flex h-3 w-3">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
+                    </span>
+                  )}
+                </Button>
+              )}
+
+              {/* 下拉箭头（放在按钮后面，最右侧） */}
               <div className="transition-transform duration-1000 ease-in-out text-slate-600 dark:text-slate-300">
                 <ChevronDown size={18} className={isNoticeExpanded ? "rotate-180" : ""} />
               </div>
@@ -348,7 +384,7 @@ export default function PublicServerInfo() {
           )}
           {/* 服务器列表 */}
           <div className="mt-3">
-            <StreamingServerList ref={streamingListRef} key={refreshKey} groupID={groupID!} token={undefined} isAutoRefresh={true} onServersChange={handleServersChange} onError={setErrorStats} />
+            <StreamingServerList ref={streamingListRef} key={refreshKey} groupID={groupID!} isAutoRefresh={true} onServersChange={handleServersChange} onError={setErrorStats} onVersionUpdate={handleVersionUpdate} />
           </div>
         </div>
       </div>
@@ -364,7 +400,20 @@ export default function PublicServerInfo() {
           {isHidden ? <Eye size={18} className="m-auto" /> : <EyeOff size={18} className="m-auto" />}
         </Button>
       </div>
-      <XfMusicPlayer />
+      {/* ========== 粘性底部 Footer ========== */}
+      <footer className="z-40 opacity-50 hover:opacity-100 transition-all duration-300 mt-auto">
+        <div className="max-w-7xl mx-auto px-6 py-2">
+          <div className="bg-white/70 dark:bg-slate-900/90 backdrop-blur rounded-lg p-3 text-center shadow-lg">
+            <p className="text-sm text-slate-700 dark:text-slate-300">
+              萌ICP备20268604号
+              <a href="https://github.com/yinleren6" className="hover:text-orange-500 transition-colors">
+                ©CCiallo
+              </a>
+              {new Date().getFullYear()} Powered by React
+            </p>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }

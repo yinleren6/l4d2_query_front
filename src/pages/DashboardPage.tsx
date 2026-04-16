@@ -45,6 +45,12 @@ export default function DashboardLayout() {
       roles: ["admin", "user"],
     },
     {
+      to: "/dashboard/about",
+      label: "后端更新",
+      icon: <Activity size={18} />,
+      roles: ["admin"],
+    },
+    {
       to: "/dashboard/account",
       label: "账户设置",
       icon: <Settings size={18} />,
