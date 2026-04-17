@@ -13,8 +13,6 @@ export default function WhitelistTab() {
   const [userID, setUserID] = useState("");
 
   const [loading, setLoading] = useState(false);
-
-  // ✅ 只存【刚创建的用户ID + 对应token】，刷新消失
   const [newCreatedToken, setNewCreatedToken] = useState<{
     userId: string | null;
     token: string | null;
@@ -72,7 +70,6 @@ export default function WhitelistTab() {
     };
   }, [loadUserlist]);
 
-  // 添加群组
   const addGrouplist = async () => {
     const id = userID.trim();
     if (!id) {
@@ -113,7 +110,6 @@ export default function WhitelistTab() {
       toast.error("刷新失败");
     }
   };
-  // 复制 token
   const copyToken = async (token: string) => {
     try {
       await navigator.clipboard.writeText(token);
@@ -189,8 +185,6 @@ export default function WhitelistTab() {
               </div>
               <p className="text-sm text-slate-500">上次登录: {formatIsoDate(item.last_login)}</p>
               <p className="text-sm text-slate-500">创建时间: {formatIsoDate(item.created_at)}</p>
-
-              {/* ✅ 只给【刚创建的这个用户】显示 token */}
               {newCreatedToken.userId === item.user_id && newCreatedToken.token && (
                 <div className="flex-wrap items-center gap-2 mt-1 ring-2 ring-blue-500 rounded-lg px-2">
                   <div className="text-sm text-amber-600 p-2">注意: 登录 Token 仅显示一次，刷新页面消失，请妥善保管</div>

@@ -66,7 +66,6 @@ export default function ServerCard({ server, onJoin, onCopy, className = "" }: S
   return (
     <div
       className={`relative min-h-[120] p-4 rounded-xl flex flex-col transition-all duration-300 hover:shadow-xl bg-white/60 backdrop-blur-sm dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:-translate-y-1 opacity-0 animate-fadeIn ${className}`}>
-      {/* 服务器名称行 + 按钮 */}
       <div className="flex items-center gap-2">
         <div className="flex-1 font-bold text-lg wrap-break-words text-slate-800 dark:text-slate-100">{server.ServerName || server.ServerAddress}</div>
         <div className="flex gap-1">
@@ -76,7 +75,6 @@ export default function ServerCard({ server, onJoin, onCopy, className = "" }: S
           <button onClick={handleJoin} className="px-4 py-1.5 bg-sky-500 text-white rounded-md text-xs font-medium hover:bg-sky-600 transition">
             加入
           </button>
-          {/* 状态指示灯 */}
           <div className="my-auto">
             <div className={`w-8 h-5 rounded-full relative ${hasError ? "bg-red-400" : isFull ? "bg-orange-400" : "bg-green-500"}`}>
               <div className={`absolute top-0.5 w-4 h-4 bg-white rounded-full transition-all ${hasError ? "left-0.5" : "left-[14.5px]"}`} />
@@ -84,15 +82,12 @@ export default function ServerCard({ server, onJoin, onCopy, className = "" }: S
           </div>
         </div>
       </div>
-
-      {/* 服务器详情行：地图 | 进度条 | 模式 | 人数 */}
       {!hasError && (
         <div className="flex items-center text-sm mt-2 font-medium px-1">
           <span className="flex-1 truncate text-emerald-600 dark:text-emerald-400">{server.Map}</span>
           <span className="mx-1 text-amber-500 dark:text-amber-400 whitespace-nowrap">[{server.Mode}]</span>
         </div>
       )}
-      {/* 玩家列表折叠区域 */}
       <div className="mt-2">
         {!hasError && (
           <button
@@ -100,25 +95,19 @@ export default function ServerCard({ server, onJoin, onCopy, className = "" }: S
             className="w-full h-12 flex items-center justify-between text-xs text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 py-1 px-2 rounded-md bg-slate-100/50 hover:bg-slate-200/50 dark:hover:bg-slate-800/60 transition">
             <div className="flex flex-col px-3 py-1.5 overflow-hidden gap-1 w-full flex-1">
               <span className="text-left text-xs font-medium text-slate-700 dark:text-slate-200">玩家列表 ({playersCount})</span>
-              {/* 底部进度条 */}
               <div className="h-2 w-full bg-linear-to-r from-emerald-500 to-sky-500 rounded-full transition-all duration-500 ease-out" style={{ width: `${playersPercent}%` }} />
             </div>
-
-            {/* 👇 图标旋转动画（替换原来的两个图标切换） */}
             <div className="transition-transform duration-300 ease-in-out">
               <ChevronDown size={14} className={isExpanded ? "rotate-180" : ""} />
             </div>
           </button>
         )}
-
-        {/*  折叠动画  */}
         {!hasError && (
           <div
             className={`
         overflow-hidden transition-all duration-500 ease
         ${isExpanded ? "max-h-125 opacity-100 mt-2" : "max-h-0 opacity-0"}
       `}>
-            {/* 玩家列表内容  */}
             <div className="bg-blue-50/50 dark:bg-slate-800/30 p-2 rounded-lg">
               {server.PlayersList && server.PlayersList.length > 0 ? (
                 <div className="space-y-1">

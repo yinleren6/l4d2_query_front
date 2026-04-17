@@ -40,20 +40,15 @@ export default function UnifiedLoginForm({ onAdminLogin, onTokenLogin, loading }
 
   return (
     <Card className="w-full max-w-md p-8 shadow-none border border-gray-200 rounded-2xl bg-white h-130 flex flex-col">
-      {/* 图标区域 */}
       <div className="flex justify-center mb-6 shrink-0">
         <div className="w-16 h-16 rounded-2xl bg-blue-50 flex items-center justify-center">
           <Lock className="w-8 h-8 text-blue-600 stroke-3" />
         </div>
       </div>
-
-      {/* 标题区域 */}
       <div className="text-center mb-6 shrink-0">
         <h1 className="text-xl font-bold text-gray-900 mb-2">欢迎使用 </h1>
         <p className="text-sm text-gray-500">{"请输入您的 Access Token 以继续访问系统"}</p>
       </div>
-
-      {/* Tab 切换 */}
       <div className="relative flex mb-6 h-10 rounded-xl bg-gray-100 overflow-hidden shrink-0">
         <div
           className="absolute inset-y-0 w-1/2 rounded-md bg-primary transition-all duration-300 ease-in-out shadow-sm"
@@ -81,10 +76,7 @@ export default function UnifiedLoginForm({ onAdminLogin, onTokenLogin, loading }
           ID 登录
         </button>
       </div>
-
-      {/* 动态内容区域 */}
       <div className="relative grow">
-        {/* Admin 表单 */}
         <div className={`absolute w-full transition-all duration-300 ease-in-out ${tab === "admin" ? "opacity-100 translate-y-0 pointer-events-auto" : "opacity-0 translate-y-4 pointer-events-none"}`}>
           <div className="space-y-4 mb-6">
             <Input
@@ -106,8 +98,6 @@ export default function UnifiedLoginForm({ onAdminLogin, onTokenLogin, loading }
             />
           </div>
         </div>
-
-        {/* Token 表单 */}
         <div className={`absolute w-full transition-all duration-300 ease-in-out ${tab === "token" ? "opacity-100 translate-y-0 pointer-events-auto" : "opacity-0 -translate-y-4 pointer-events-none"}`}>
           <div className="relative mb-6">
             <HelpCircle className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
@@ -121,14 +111,10 @@ export default function UnifiedLoginForm({ onAdminLogin, onTokenLogin, loading }
             />
           </div>
         </div>
-
-        {/* 按钮区域 */}
         <div className="absolute w-full top-30">
           <Button onClick={handleSubmit} disabled={loading} className="w-full h-10 text-xs font-semibold rounded-xl bg-blue-600 hover:bg-blue-700 transition-colors">
             {loading ? "验证中..." : "验证并进入"}
           </Button>
-
-          {/* 获取 Token 链接 */}
           {tab === "token" && (
             <div className="flex justify-between mt-4 transition-opacity duration-300">
               <a

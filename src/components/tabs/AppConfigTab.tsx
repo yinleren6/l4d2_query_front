@@ -9,7 +9,6 @@ import { AppVersionFormData, FormSchema } from "@/types";
 import { toast } from "sonner";
 import { deepTrim, isEqual } from "@/lib/utils";
 import LoadingGif from "@/components/ui/loadinggif";
-// 深度比较两个对象（内容是否相等）
 
 export default function AppVersionTab() {
   const [schema, setSchema] = useState<FormSchema | null>(null);
@@ -40,9 +39,7 @@ export default function AppVersionTab() {
       setSchema(schemaRes.data);
     } catch (err: unknown) {
       if (!mountedRef.current) return;
-      // 忽略取消请求的错误
       if (err instanceof Error && err.name === "AbortError") return;
-      // 其他错误
       const errorMsg = "加载版本配置失败，请刷新重试";
       setError(errorMsg);
       toast.error(errorMsg);
@@ -89,7 +86,6 @@ export default function AppVersionTab() {
       changelog: trimmedData["changelog"] || "",
     };
 
-    // 无变化则跳过提交
     if (originalData && isEqual(finalData, deepTrim(originalData))) {
       toast.info("内容没有变化，无需保存");
       return;
@@ -97,13 +93,10 @@ export default function AppVersionTab() {
 
     setSubmitting(true);
     try {
-      // 发送保存请求，并期望后端返回保存后的完整配置对象（包含服务器生成的时间戳等）
       const response = await request.post("/api/admin/save-app-config", finalData);
-      const savedData = response.data; // 后端返回最新数据
+      const savedData = response.data;
 
       if (!mountedRef.current) return;
-
-      // 直接更新本地状态，不重新加载
       setFormData(savedData || finalData);
       setOriginalData(savedData || finalData);
       toast.success("✅ App版本配置保存成功！");

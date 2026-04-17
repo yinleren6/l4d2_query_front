@@ -31,15 +31,10 @@ export default function App() {
       <Toaster />
       <Suspense fallback={<PageLoading />}>
         <Routes>
-          {/* 根路径自动跳转到 dashboard */}
-
           <Route path="/test" element={<div>Test OK</div>} />
-
-          {/* 管理后台路由 - 只能在 dash.xxx 访问 */}
           <Route element={<DashOnlyRoute />}>
             <Route path="/" element={<Navigate to="/dashboard" replace />} />
             <Route path="/login" element={<LoginPage />} />
-
             <Route
               path="/dashboard"
               element={
@@ -57,8 +52,6 @@ export default function App() {
               <Route path="about" element={<AboutTab />} />
             </Route>
           </Route>
-
-          {/* 公开路由 - 只能在 l.xxx 访问 */}
           <Route element={<PublicOnlyRoute />}>
             <Route path="/p/:groupID" element={<PublicServerInfo />} />
           </Route>

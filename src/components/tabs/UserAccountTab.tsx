@@ -8,23 +8,15 @@ import request from "@/api/request";
 import { ShieldAlert, Copy } from "lucide-react";
 
 export default function AccountPage() {
-  const { user } = useAuthStore(); // 只读取，不更新token
+  const { user } = useAuthStore();
   const [loading, setLoading] = useState(false);
-
-  // 刷新后临时显示的新群Token（只存在组件内存，不存本地）
   const [newGroupToken, setNewGroupToken] = useState<string | null>(null);
-
-  // 刷新群Token
   const handleRefreshToken = async () => {
     if (!confirm("⚠️ 确认刷新 Token 吗？\n刷新后旧 Token 将无法登录,请保管好新的 token！")) return;
-
     setLoading(true);
     setNewGroupToken(null);
     try {
-      // 后端返回 真实新token
       const { data } = await request.post("/api/user/refresh-group-token");
-
-      // ✅ 只临时放内存，显示一次，不存localStorage，不进全局store
       setNewGroupToken(data.token);
       toast.success("✅ Token 已刷新！请立即复制保存");
     } catch (err) {
@@ -52,8 +44,6 @@ export default function AccountPage() {
           <label className="text-sm text-muted-foreground">角色</label>
           <Input value={user.role === "admin" ? "管理员" : "用户"} readOnly />
         </div>
-
-        {/* 👇 刷新后才会显示新Token，只显示一次 */}
         {newGroupToken && (
           <div className="space-y-2">
             <label className="text-sm text-red-600 font-semibold">新登录Token（仅本次显示，刷新页面消失）</label>

@@ -4,15 +4,11 @@ import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 export default function NotFound() {
   const navigate = useNavigate();
-
-  // 自动判断当前域名，跳正确首页
   const goHome = () => {
     const isPublicDomain = window.location.host.startsWith("l.");
     if (isPublicDomain) {
-      // l.xxx 域名 → 404，不跳转，提示一下
       toast.error("呜呜呜~ 首页居然不见啦(╥ω╥`)");
     } else {
-      // dash.xxx 域名 → 回后台首页
       navigate("/dashboard");
     }
   };

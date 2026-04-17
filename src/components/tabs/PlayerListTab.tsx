@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import LoadingGif from "@/components/ui/loadinggif";
 import { useAuthStore } from "@/store/AuthState";
 import { Button } from "@/components/ui/button";
+
 export default function PlayerListTab() {
   const { user } = useAuthStore();
   const [groups, setGroups] = useState<{ group_id: string; name: string }[]>([]);
@@ -33,7 +34,7 @@ export default function PlayerListTab() {
     } finally {
       if (mountedRef.current) setLoadingGroups(false);
     }
-  }, [isAdmin]);
+  }, [isAdmin, selectedGroup]);
 
   useEffect(() => {
     if (isAdmin) fetchGroups();
@@ -41,7 +42,6 @@ export default function PlayerListTab() {
   }, [isAdmin, currentUserId, fetchGroups]);
 
   const navigateToPublic = () => {
-    // 👇 自动获取当前域名，把 dash 换成 l
     const publicHost = window.location.host.replace("dash.", "l.");
     window.open(`https://${publicHost}/p/${selectedGroup}`, "_blank");
   };
@@ -82,7 +82,6 @@ export default function PlayerListTab() {
           </Button>
         </div>
       )}
-      {/* <StreamingServerList key={refreshKey} groupId={selectedGroup} isAutoRefresh={true} /> */}
     </div>
   );
 }

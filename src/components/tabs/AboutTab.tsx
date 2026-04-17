@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { RefreshCw, Upload, AlertCircle } from "lucide-react";
 import { useAuthStore } from "@/store/AuthState";
-import request from "@/api/request"; // 封装的 axios 实例
+import request from "@/api/request";
 import { LatestVersionInfo, CurrentVersion } from "@/types";
 
 export default function AboutTab() {
@@ -19,11 +19,10 @@ export default function AboutTab() {
   const { user } = useAuthStore();
   const token = user?.jwtToken;
 
-  // 获取当前运行版本（从 /api/ok）
   const fetchCurrentVersion = async () => {
     try {
       const res = await request.get("/api/ok");
-      const data = res.data; // axios 返回数据在 data 字段
+      const data = res.data;
       setCurrent({
         frontVersion: data.FrontVersion || "未知",
         frontBuildTime: data.FrontbuildTime || "未知",
@@ -36,7 +35,6 @@ export default function AboutTab() {
     }
   };
 
-  // 检查更新（GET 请求获取最新版本信息）
   const handleCheckUpdate = async () => {
     setLoading(true);
     try {
@@ -58,7 +56,6 @@ export default function AboutTab() {
     }
   };
 
-  // 触发更新（POST 请求）
   const handleTriggerUpdate = async () => {
     setUpdating(true);
     try {
@@ -79,12 +76,10 @@ export default function AboutTab() {
     }
   };
 
-  // 服务重启后自动刷新页面（轮询 /api/ok）
   const waitForServiceRecovery = () => {
     const checkHealth = async () => {
       try {
         await request.get("/api/ok");
-        // 请求成功说明服务已恢复
         window.location.reload();
       } catch {
         setTimeout(checkHealth, 2000);
@@ -93,7 +88,6 @@ export default function AboutTab() {
     checkHealth();
   };
 
-  // 初始化获取当前版本
   useEffect(() => {
     fetchCurrentVersion();
   }, []);
@@ -103,7 +97,6 @@ export default function AboutTab() {
 
   return (
     <div className="space-y-6">
-      {/* 当前版本卡片 */}
       <Card>
         <CardHeader>
           <CardTitle>当前版本信息</CardTitle>
@@ -124,8 +117,6 @@ export default function AboutTab() {
           </div>
         </CardContent>
       </Card>
-
-      {/* 更新操作卡片 */}
       <Card>
         <CardHeader>
           <CardTitle>版本更新</CardTitle>
@@ -165,7 +156,7 @@ export default function AboutTab() {
                 <Alert className="mt-2" variant={isForce ? "destructive" : "default"}>
                   <AlertCircle className="h-4 w-4" />
                   <AlertTitle>发现新版本</AlertTitle>
-                  <AlertDescription>{isForce ? "此版本为强制更新，服务将自动重启" : "建议立即更新以获得最新功能和修复" + latest.message}</AlertDescription>
+                  <AlertDescription>{isForce ? "更新加载中～服务要重启一下下，很快就好啦，请稍等！" : "唔…… 到底更新了什么呢？我完全不清楚哦……" + latest.message}</AlertDescription>
                 </Alert>
               )}
             </div>

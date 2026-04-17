@@ -31,7 +31,6 @@ const StreamingServerList = forwardRef<StreamingServerListRef, StreamingServerLi
   const servers = serverOrder.map((key) => serversMap[key]).filter(Boolean);
   const isRefreshing = useRef(false);
   const pendingTimeoutsRef = useRef<Record<string, number>>({});
-  // 稳定回调引用，避免不必要的重连
   const onLoadingChangeRef = useRef(onLoadingChange);
   const onErrorRef = useRef(onError);
   const onServersChangeRef = useRef(onServersChange);
@@ -40,8 +39,6 @@ const StreamingServerList = forwardRef<StreamingServerListRef, StreamingServerLi
     onErrorRef.current = onError;
     onServersChangeRef.current = onServersChange;
   }, [onLoadingChange, onError, onServersChange]);
-
-  // 日志工具（保持不变）
   const lastTimeRef = useRef<number>(0);
   useEffect(() => {
     lastTimeRef.current = Date.now();
@@ -61,8 +58,6 @@ const StreamingServerList = forwardRef<StreamingServerListRef, StreamingServerLi
       return ``;
     }
   };
-
-  // 自动刷新定时器（30秒发送一次 refresh）
   useEffect(() => {
     if (isAutoRefresh) {
       autoRefreshIntervalRef.current = window.setInterval(() => {
@@ -75,8 +70,6 @@ const StreamingServerList = forwardRef<StreamingServerListRef, StreamingServerLi
       if (autoRefreshIntervalRef.current) clearInterval(autoRefreshIntervalRef.current);
     };
   }, [isAutoRefresh]);
-
-  // 数据变化回调
   useEffect(() => {
     onServersChangeRef.current?.(servers);
   }, [servers]);
@@ -97,7 +90,6 @@ const StreamingServerList = forwardRef<StreamingServerListRef, StreamingServerLi
   }, []);
 
   const wsRef = useRef<WebSocket | null>(null);
-  // 手动刷新
   const refresh = useCallback(() => {
     if (isRefreshing.current) return;
     if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
@@ -111,20 +103,15 @@ const StreamingServerList = forwardRef<StreamingServerListRef, StreamingServerLi
   }, []);
 
   useImperativeHandle(ref, () => ({ refresh }));
-
-  // 建立 WebSocket 连接（支持 token 鉴权）
   useEffect(() => {
     if (!groupID || !isAutoRefresh) return;
     cleanup();
-
-    // 【关键修改】构建 WebSocket URL，如果 token 存在则作为查询参数附加
     let wsUrl = `${window.location.protocol === "https:" ? "wss:" : "ws:"}//${window.location.host}/api/ws/stream/${groupID}`;
     if (token) {
       wsUrl += `?token=${encodeURIComponent(token)}`;
     }
 
     const ws = new WebSocket(wsUrl);
-    // eslint-disable-next-line react-hooks/immutability
     wsRef.current = ws;
 
     ws.onopen = () => {
@@ -164,11 +151,9 @@ const StreamingServerList = forwardRef<StreamingServerListRef, StreamingServerLi
                   PlayersList: [],
                   hasError: false,
                 };
-                // 清除旧的定时器
                 if (pendingTimeoutsRef.current[addr]) {
                   clearTimeout(pendingTimeoutsRef.current[addr]);
                 }
-                // 设置超时定时器
                 pendingTimeoutsRef.current[addr] = window.setTimeout(() => {
                   setServersMap((prevMap) => {
                     const target = prevMap[addr];
@@ -192,7 +177,6 @@ const StreamingServerList = forwardRef<StreamingServerListRef, StreamingServerLi
           });
         } else if (type === "server") {
           const serverData = data as ServerInfo;
-          // 清除该地址的超时定时器
           if (pendingTimeoutsRef.current[serverData.ServerAddress]) {
             clearTimeout(pendingTimeoutsRef.current[serverData.ServerAddress]);
             delete pendingTimeoutsRef.current[serverData.ServerAddress];
@@ -211,13 +195,12 @@ const StreamingServerList = forwardRef<StreamingServerListRef, StreamingServerLi
           setLoading(false);
           onLoadingChangeRef.current?.(false);
         } else if (type === "pong") {
-          // 心跳响应
+          // pong
         } else if (type === "version_update") {
-          // 假设后端推送格式：{ type: "version_update", data: { version: "v1.2.3", force: false, message: "新增功能" } }
           onVersionUpdate?.(data);
         }
       } catch (e) {
-        console.error("解析 WebSocket 消息失败", e);
+        console.error("电波识别失败了", e);
       }
     };
 
@@ -253,7 +236,7 @@ const StreamingServerList = forwardRef<StreamingServerListRef, StreamingServerLi
       if (heartbeatIntervalRef.current) clearInterval(heartbeatIntervalRef.current);
       if (reconnectTimerRef.current) clearTimeout(reconnectTimerRef.current);
     };
-  }, [groupID, isAutoRefresh, token, connectionKey, cleanup, onVersionUpdate]); // 【关键修改】依赖数组中添加 token
+  }, [groupID, isAutoRefresh, token, connectionKey, cleanup, onVersionUpdate]);
 
   useEffect(() => {
     mountedRef.current = true;
