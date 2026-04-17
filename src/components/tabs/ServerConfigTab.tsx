@@ -23,7 +23,6 @@ export default function ServerConfigTab() {
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
-  // 群组列表（仅管理员）
   const [users, setUsers] = useState<
     {
       user_id: string;
@@ -35,16 +34,12 @@ export default function ServerConfigTab() {
   });
 
   const mountedRef = useRef(true);
-
-  // 加载群组列表（管理员）
   useEffect(() => {
     if (user?.role !== "admin" || currentGroupId === "") return;
     const fetchGroups = async () => {
       try {
         const res = await request.get("/api/admin/groups");
-        // console.log("群组数据示例:", res.data[0]);
         if (mountedRef.current) {
-          // ✅ 只显示启用的群组
           const enabledGroups = (res.data || []).filter((g: any) => {
             return g.enabled === true || g.enabled === 1 || g.enabled === "true";
           });
@@ -56,7 +51,6 @@ export default function ServerConfigTab() {
     };
     fetchGroups();
   }, [user]);
-  // 加载配置（根据 currentGroupId）
   const loadData = useCallback(async () => {
     if (user?.role === "admin" && !currentGroupId) {
       setLoading(false);
@@ -92,7 +86,6 @@ export default function ServerConfigTab() {
     };
   }, [loadData]);
 
-  // 保存配置
   const handleSubmit = async ({ formData: rawFormData }: { formData?: ServerFormData }) => {
     if (!rawFormData || submitting) return;
     const trimmedData = deepTrim(rawFormData);
@@ -150,7 +143,6 @@ export default function ServerConfigTab() {
 
   return (
     <Card className="p-6 animate-fade-slide">
-      {/* 管理员显示群组下拉选择框 */}
       {user?.role === "admin" && users.length > 0 && (
         <div className="mb-4 flex items-center gap-2 flex-wrap">
           <label className="text-sm font-medium">选择群组：</label>

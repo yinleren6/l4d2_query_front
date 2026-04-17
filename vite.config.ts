@@ -35,10 +35,10 @@ const generateVersionPlugin = () => {
       const rootVersionPath = path.resolve(__dirname, 'version.json')
 
       const defaultData = {
-        major: 1,
+        major: 0,
         minor: 0,
         patch: 0,
-        version: 'v1.0.0.00000000',
+        version: 'v0.0.0.00000000',
         buildTime: new Date().toLocaleString('zh-CN')
       }
 

@@ -5,16 +5,10 @@ import request from "@/api/request";
 import type { ServerInfo } from "@/components/ServerCard";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-// import { LatestVersionInfo } from "@/types";
 import { Eye, EyeOff, Download, RefreshCw, ChevronDown } from "lucide-react";
 import StreamingServerList, { StreamingServerListRef } from "@/components/StreamingServerList";
-// import XfMusicPlayer from "@/components/MusicPlayer";
-// 🌸 动态樱花飘落动画
 const FallingSakura = () => {
-  // 樱花数量
   const sakuraCount = 20;
-
-  //   用useMemo缓存随机数据，仅初始化生成一次
   const sakuraStyles = useMemo(() => {
     return Array.from({ length: sakuraCount }).map(() => ({
       // eslint-disable-next-line react-hooks/purity
@@ -89,7 +83,6 @@ export default function PublicServerInfo() {
   const handleVersionUpdate = useCallback((data: any) => {
     setHasNewVersion(true);
     if (!showPage) {
-      // 可选：显示 toast 提示
       if (data.force) {
         toast.warning(`服务已更新：${data.version}`);
       } else {
@@ -114,41 +107,33 @@ export default function PublicServerInfo() {
     "https://www.loliapi.com/acg",
   ];
 
-  // 存储每个背景图片的 Blob URL 和加载状态
   const [bgBlobUrls, setBgBlobUrls] = useState<(string | null)[]>(() => new Array(bgImages.length).fill(null));
   const [bgReady, setBgReady] = useState<boolean[]>(() => new Array(bgImages.length).fill(false));
   const [anyBgReady, setAnyBgReady] = useState(false);
 
-  // 使用 ref 存储最新的 blob URLs，以便在卸载时释放
   const blobUrlsRef = useRef<(string | null)[]>(bgBlobUrls);
   const switchTime = 20000;
   const transitionTime = 5000;
   const lastRef = useRef(0);
   const streamingListRef = useRef<StreamingServerListRef>(null);
 
-  const [isNoticeExpanded, setIsNoticeExpanded] = useState(true); // 默认展开
+  const [isNoticeExpanded, setIsNoticeExpanded] = useState(true);
   const [showPage, setShowPage] = useState(true);
   const toggleNotice = () => setIsNoticeExpanded(!isNoticeExpanded);
   useEffect(() => {
-    // useParams 获取的是字符串类型，
-    if (groupID === "1067085569") {
+    if (groupID !== "666") {
       setShowPage(true);
-    }
-    // 可选：如果需要非222时隐藏，取消下面注释
-    else {
+    } else {
       setShowPage(false);
     }
-  }, [groupID]); // 依赖 groupID，变化时自动触发
-  // 3 秒后自动折叠公告
+  }, [groupID]);
   useEffect(() => {
     const timer = setTimeout(() => {
       setIsNoticeExpanded(false);
     }, 5000);
 
-    // 组件卸载清除定时器
     return () => clearTimeout(timer);
   }, []);
-  // 轮播定时器
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrentBgIndex((prev) => (prev + 1) % bgImages.length);
@@ -156,12 +141,10 @@ export default function PublicServerInfo() {
     return () => clearInterval(timer);
   }, [bgImages.length, switchTime]);
 
-  // 监听是否有至少一张图加载完成
   useEffect(() => {
     setAnyBgReady(bgReady.some((ready) => ready));
   }, [bgReady]);
 
-  // 保存当前背景图
   const handleSaveBackground = () => {
     const blobUrl = bgBlobUrls[currentBgIndex];
     if (blobUrl) {
@@ -176,9 +159,7 @@ export default function PublicServerInfo() {
     }
   };
 
-  // 手动刷新（3秒防抖）
   const handleManualRefresh = useCallback(() => {
-    // 3秒内重复点击直接忽略
     const now = Date.now();
     if (now - lastRef.current < 3000) {
       toast.success("你冲得太快了 喵~");
@@ -206,14 +187,12 @@ export default function PublicServerInfo() {
     setErrorStats("");
   };
 
-  //统计
   useEffect(() => {
     if (groupID) {
-      request.post("/api/public/record", { group_id: groupID }).catch((err) => console.warn("记录访问失败", err));
+      request.post("/api/public/record", { group_id: groupID }).catch((err) => console.warn("api访问失败", err));
     }
   }, [groupID]);
 
-  // 预加载所有背景图片并生成 Blob URL（并发）
   useEffect(() => {
     const loadAllImages = async () => {
       blobUrlsRef.current.forEach((url) => url && URL.revokeObjectURL(url));
@@ -252,7 +231,6 @@ export default function PublicServerInfo() {
       style={{
         fontFamily: "'MaokenZhuyuanTi', 'Microsoft YaHei', sans-serif",
       }}>
-      {/* 🌟 加载背景 + 樱花飘落动画 */}
       <div
         className={`absolute inset-0 transition-opacity duration-1000 ease-in-out z-[-15] ${anyBgReady ? "opacity-0" : "opacity-100"}`}
         style={{
@@ -260,8 +238,6 @@ export default function PublicServerInfo() {
         }}>
         <FallingSakura />
       </div>
-
-      {/* 背景轮播 */}
       {bgImages.map((_, idx) => {
         const bgUrl = bgBlobUrls[idx] || bgImages[idx];
         const isActive = idx === currentBgIndex;
@@ -280,21 +256,13 @@ export default function PublicServerInfo() {
           />
         );
       })}
-
-      {/* 遮罩 */}
       <div className="absolute inset-0 bg-slate-900/30 z-[-5]" />
-
-      {/* 主内容区 */}
       <div className={`relative z-10 animate-popBounce transition-opacity duration-1000 grow ${isHidden ? "opacity-0 pointer-events-none" : "opacity-100"}`}>
         <div className="max-w-7xl mx-auto p-4 md:p-6">
-          {/* 顶部标题栏：只留动画，无冲突 */}
           <div
             onClick={toggleNotice}
             className="bg-orange-50/50 dark:bg-slate-900/85 animate-backdrop-blur rounded-xl p-5 shadow-md text-3xl flex items-center justify-between cursor-pointer hover:bg-orange-100/50 dark:hover:bg-slate-800/90 transition-colors">
-            {/* 左侧：标题（保持不变） */}
             {showPage ? <div className="flex">🍊「悠悠・荣誉时刻・求生大佬・荣誉加冕台」</div> : <div className="flex">🍊「悠悠の求生之路纯净多特服务器」</div>}
-
-            {/* 右侧：管理按钮 + 下拉箭头（核心修改：包裹在一起，统一靠右） */}
             <div className="flex items-center gap-4">
               {!showPage && (
                 <Button
@@ -312,16 +280,12 @@ export default function PublicServerInfo() {
                   )}
                 </Button>
               )}
-
-              {/* 下拉箭头（放在按钮后面，最右侧） */}
               <div className="transition-transform duration-1000 ease-in-out text-slate-600 dark:text-slate-300">
                 <ChevronDown size={18} className={isNoticeExpanded ? "rotate-180" : ""} />
               </div>
             </div>
           </div>
-          {/* 公告折叠面板 */}
           <div className={`overflow-hidden transition-all duration-1000 ease-in-out ${isNoticeExpanded ? "max-h-500 opacity-100 mt-3" : "max-h-0 opacity-0 mt-0"}`}>
-            {/* 公告卡片：只留动画 */}
             <div className="bg-orange-50/50 dark:bg-slate-900/85 animate-backdrop-blur rounded-xl p-5 shadow-md">
               <h3 className="text-xl font-bold text-slate-800 dark:text-slate-100 mb-4 flex items-center gap-2">
                 <span className="text-amber-500">🔔</span> 服务器公告
@@ -360,7 +324,6 @@ export default function PublicServerInfo() {
               </div>
             </div>
           </div>
-          {/* 服务器信息：只留动画 */}
           {errorStats ? (
             <div className="bg-red-50/80 dark:bg-red-900/30 rounded-xl p-4 text-center text-red-600 mt-3">统计信息加载失败：{errorStats}</div>
           ) : (
@@ -382,13 +345,11 @@ export default function PublicServerInfo() {
               </div>
             </div>
           )}
-          {/* 服务器列表 */}
           <div className="mt-3">
             <StreamingServerList ref={streamingListRef} key={refreshKey} groupID={groupID!} isAutoRefresh={true} onServersChange={handleServersChange} onError={setErrorStats} onVersionUpdate={handleVersionUpdate} />
           </div>
         </div>
       </div>
-      {/* 右上角按钮：只留动画 */}
       <div className="fixed top-2 right-3 z-50 flex gap-2">
         {isHidden && (
           <Button variant="secondary" size="default" onClick={handleSaveBackground} className="bg-white/80 animate-backdrop-blur shadow-lg hover:bg-white/90">
@@ -400,7 +361,6 @@ export default function PublicServerInfo() {
           {isHidden ? <Eye size={18} className="m-auto" /> : <EyeOff size={18} className="m-auto" />}
         </Button>
       </div>
-      {/* ========== 粘性底部 Footer ========== */}
       <footer className="z-40 opacity-50 hover:opacity-100 transition-all duration-300 mt-auto">
         <div className="max-w-7xl mx-auto px-6 py-2">
           <div className="bg-white/70 dark:bg-slate-900/90 backdrop-blur rounded-lg p-3 text-center shadow-lg">

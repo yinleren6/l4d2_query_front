@@ -28,8 +28,6 @@ export default function LoginPage() {
       return;
     }
   }, [user, navigate]);
-
-  // 管理员登录
   const handleAdminLogin = async (values: Record<string, string>) => {
     const id = values.id;
     const password = values.password;
@@ -61,8 +59,6 @@ export default function LoginPage() {
       setLoading(false);
     }
   };
-
-  // Token 登录
   const handleTokenLogin = async (values: Record<string, string>) => {
     const token = values.token;
     if (!token?.trim()) {

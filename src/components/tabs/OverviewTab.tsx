@@ -20,7 +20,6 @@ export default function OverviewTab() {
     if (mountedRef.current) {
       setLoading(false);
     }
-    // 取消上一次未完成的请求
     if (abortControllerRef.current) {
       abortControllerRef.current.abort();
     }
@@ -32,10 +31,8 @@ export default function OverviewTab() {
     setError("");
 
     try {
-      // 使用 Promise.allSettled 分别处理两个接口，避免一个失败导致全部失败
       const [overviewResult, dailyResult] = await Promise.allSettled([request.get<OverviewStats>("/api/stats/overview", { signal }), request.get<DailyStat[]>("/api/stats/daily?days=7", { signal })]);
 
-      // 处理 overview 结果
       if (overviewResult.status === "fulfilled") {
         setOverview(overviewResult.value.data);
       } else {
@@ -52,10 +49,8 @@ export default function OverviewTab() {
         }
       }
 
-      // 处理 daily 结果
       if (dailyResult.status === "fulfilled") {
         let dailyData = dailyResult.value.data;
-        // 按日期升序排序，确保图表折线顺序正确
         dailyData = [...dailyData].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
         setDaily(dailyData);
       } else {
@@ -72,7 +67,6 @@ export default function OverviewTab() {
         }
       }
     } catch (err) {
-      // 捕获非请求错误（如代码异常）
       if ((err as Error).name !== "AbortError") {
         const errorMsg = "加载统计数据失败，请刷新重试";
         setError(errorMsg);
@@ -94,12 +88,10 @@ export default function OverviewTab() {
     };
   }, [fetchStats]);
 
-  // 手动重试函数
   const handleRetry = () => {
     fetchStats();
   };
 
-  // 加载状态 UI
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-100 gap-4">
@@ -107,9 +99,6 @@ export default function OverviewTab() {
       </div>
     );
   }
-
-  // 错误状态 UI（仅当两个接口都失败时显示错误，部分成功时继续展示）
-  // 如果 overview 和 daily 都为空且 error 存在，则展示完全失败页面
   const isBothFailed = !overview && daily.length === 0 && error !== "";
   if (isBothFailed) {
     return (
@@ -121,10 +110,8 @@ export default function OverviewTab() {
     );
   }
 
-  // 正常渲染：统计卡片 + 图表
   return (
     <div className="space-y-6">
-      {/* 统计卡片：响应式网格 */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card className="animate-fade-slide">
           <CardHeader className="pb-2">
@@ -192,7 +179,6 @@ export default function OverviewTab() {
         </Card>
       </div>
 
-      {/* 图表区域：空数据占位 + 响应式高度 */}
       <Card className="p-6 animate-fade-slide">
         <h3 className="text-lg font-semibold mb-4">近7日数据趋势</h3>
         <div className="h-75 sm:h-100 w-full">

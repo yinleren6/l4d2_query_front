@@ -1,7 +1,7 @@
 // src/pages/DashboardLayout.tsx
 import { useState, useEffect } from "react";
 import { NavLink, Outlet, useNavigate, useLocation } from "react-router-dom";
-import { Menu, LogOut, LayoutDashboard, Server, Database, Users, Activity, Settings } from "lucide-react";
+import { Menu, LogOut, LayoutDashboard, Server, Database, Users, Activity, Settings, ArrowBigUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuthStore } from "@/store/AuthState";
 import { cn } from "@/lib/utils";
@@ -19,7 +19,6 @@ export default function DashboardLayout() {
       icon: <LayoutDashboard size={18} />,
       roles: ["admin"],
     },
-
     {
       to: "/dashboard/appconfig",
       label: "App版本配置",
@@ -45,30 +44,28 @@ export default function DashboardLayout() {
       roles: ["admin", "user"],
     },
     {
-      to: "/dashboard/about",
-      label: "后端更新",
-      icon: <Activity size={18} />,
-      roles: ["admin"],
-    },
-    {
       to: "/dashboard/account",
       label: "账户设置",
       icon: <Settings size={18} />,
       roles: ["admin", "user"],
+    },
+    {
+      to: "/dashboard/about",
+      label: "关于",
+      icon: <ArrowBigUp size={18} />,
+      roles: ["admin"],
     },
   ];
 
   const userRole = user?.role || "user";
   const accessibleMenus = menuItems.filter((item) => item.roles.includes(userRole));
 
-  // 重定向默认子路由
   useEffect(() => {
     if (location.pathname === "/dashboard" && accessibleMenus.length > 0) {
       navigate(accessibleMenus[0].to, { replace: true });
     }
   }, [location, accessibleMenus, navigate]);
 
-  // 无权限时退出
   useEffect(() => {
     if (accessibleMenus.length === 0) {
       logout();
@@ -85,7 +82,6 @@ export default function DashboardLayout() {
 
   return (
     <div className="h-screen overflow-hidden">
-      {/* 顶部栏 - 固定在最上层 */}
       <header className="fixed top-0 left-0 right-0 z-30 bg-white dark:bg-slate-800 border-b px-4 py-3 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setSidebarOpen(true)}>
@@ -102,13 +98,7 @@ export default function DashboardLayout() {
         </div>
       </header>
 
-      {/* 侧边栏 - 从顶部栏下方开始，固定 */}
-      <aside
-        className={cn(
-          "fixed left-0 top-14 z-20 w-64 h-[calc(100vh-3.5rem)] bg-white dark:bg-slate-800 border-r transition-transform",
-          sidebarOpen ? "translate-x-0" : "-translate-x-full",
-          "md:translate-x-0" // 桌面端始终显示
-        )}>
+      <aside className={cn("fixed left-0 top-14 z-20 w-64 h-[calc(100vh-3.5rem)] bg-white dark:bg-slate-800 border-r transition-transform", sidebarOpen ? "translate-x-0" : "-translate-x-full", "md:translate-x-0")}>
         <div className="flex flex-col h-full">
           <div className="p-4 border-b">
             <h2 className="text-lg font-semibold">导航菜单</h2>
@@ -132,15 +122,11 @@ export default function DashboardLayout() {
           </nav>
         </div>
       </aside>
-
-      {/* 主内容区 - 避开顶部栏和侧边栏 */}
       <main className="pt-14 md:pl-64 h-full overflow-y-auto">
         <div className="p-4 sm:p-6 max-w-7xl mx-auto">
           <Outlet />
         </div>
       </main>
-
-      {/* 移动端遮罩层 */}
       {sidebarOpen && <div className="fixed inset-0 bg-black/60 z-15 md:hidden" onClick={() => setSidebarOpen(false)} />}
     </div>
   );

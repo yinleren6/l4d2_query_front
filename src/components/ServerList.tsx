@@ -10,7 +10,7 @@ interface ServerListProps {
   emptyMessage?: string;
   placeholderCount?: number;
   containerClassName?: string;
-  cardClassName?: string; // 新增：传递给 ServerCard 的类名
+  cardClassName?: string;
 }
 
 export default function ServerList({
