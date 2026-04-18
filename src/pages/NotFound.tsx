@@ -5,7 +5,7 @@ import { useNavigate } from "react-router-dom";
 export default function NotFound() {
   const navigate = useNavigate();
   const goHome = () => {
-    const isPublicDomain = window.location.host.startsWith("l.");
+    const isPublicDomain = window.location.host.startsWith("l");
     if (isPublicDomain) {
       toast.error("呜呜呜~ 首页居然不见啦(╥ω╥`)");
     } else {

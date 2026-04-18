@@ -80,19 +80,25 @@ export default function PublicServerInfo() {
   const [onlineServerCount, setOnlineServerCount] = useState(0);
   const [totalServerCount, setTotalServerCount] = useState(0);
   const [hasNewVersion, setHasNewVersion] = useState(false);
-  const handleVersionUpdate = useCallback((data: any) => {
-    setHasNewVersion(true);
-    if (!showPage) {
-      if (data.force) {
-        toast.warning(`服务已更新：${data.version}`);
-      } else {
-        toast.info(`发现新版本 ${data.version}`);
-      }
-    }
-  }, []);
+  const [showPage, setShowPage] = useState(true);
 
+  const handleVersionUpdate = useCallback(
+    (data: any) => {
+      setHasNewVersion(true);
+      if (!showPage) {
+        if (data.force) {
+          toast.warning(`服务已更新：${data.version}`);
+        } else {
+          toast.info(`发现新版本 ${data.version}`);
+        }
+      }
+    },
+    [showPage]
+  );
+
+  let publicHost;
   const navigateToDashPage = () => {
-    const publicHost = window.location.host.replace("l.", "dash.");
+    publicHost = window.location.host.replace("l.", "dash.");
     window.open(`https://${publicHost}/login`, "_blank");
   };
 
@@ -110,7 +116,6 @@ export default function PublicServerInfo() {
   const [bgBlobUrls, setBgBlobUrls] = useState<(string | null)[]>(() => new Array(bgImages.length).fill(null));
   const [bgReady, setBgReady] = useState<boolean[]>(() => new Array(bgImages.length).fill(false));
   const [anyBgReady, setAnyBgReady] = useState(false);
-
   const blobUrlsRef = useRef<(string | null)[]>(bgBlobUrls);
   const switchTime = 20000;
   const transitionTime = 5000;
@@ -118,7 +123,7 @@ export default function PublicServerInfo() {
   const streamingListRef = useRef<StreamingServerListRef>(null);
 
   const [isNoticeExpanded, setIsNoticeExpanded] = useState(true);
-  const [showPage, setShowPage] = useState(true);
+
   const toggleNotice = () => setIsNoticeExpanded(!isNoticeExpanded);
   useEffect(() => {
     if (groupID !== "666") {
