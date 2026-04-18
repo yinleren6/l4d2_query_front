@@ -12,7 +12,7 @@ export function DashOnlyRoute() {
 }
 export function PublicOnlyRoute() {
   const host = window.location.host;
-  const isPublicDomain = host.startsWith("l.");
+  const isPublicDomain = host.startsWith("l");
 
   if (!isPublicDomain) {
     return <Navigate to="/404" replace />;
