@@ -26,7 +26,6 @@ dist-ssr
 tsconfig.app.tsbuildinfo
 Caddyfile
 .env.development
-.env
 version.json
 .vscode/
 version.config.json
