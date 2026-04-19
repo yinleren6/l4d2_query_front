@@ -42,7 +42,15 @@ export default function PlayerListTab() {
   }, [isAdmin, currentUserId, fetchGroups]);
   let publicHost;
   const navigateToPublic = () => {
+<<<<<<< HEAD
     publicHost = window.location.host.replace("dash.", "l.");
+=======
+    if (window.location.host.startsWith("l.")) {
+      publicHost = window.location.host.replace("dash.", "l.");
+    } else {
+      publicHost = window.location.host.replace("dash.", "l2.");
+    }
+>>>>>>> 14b6d87b20c769549a1befae454714114e99bbc3
     window.open(`https://${publicHost}/p/${selectedGroup}`, "_blank");
   };
 

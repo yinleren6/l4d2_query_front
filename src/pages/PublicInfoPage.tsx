@@ -98,7 +98,15 @@ export default function PublicServerInfo() {
 
   let publicHost;
   const navigateToDashPage = () => {
+<<<<<<< HEAD
     publicHost = window.location.host.replace("l.", "dash.");
+=======
+    if (window.location.host.startsWith("l.")) {
+      publicHost = window.location.host.replace("dash.", "l.");
+    } else {
+      publicHost = window.location.host.replace("dash.", "l2.");
+    }
+>>>>>>> 14b6d87b20c769549a1befae454714114e99bbc3
     window.open(`https://${publicHost}/login`, "_blank");
   };
 
