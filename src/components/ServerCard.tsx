@@ -116,7 +116,7 @@ export default function ServerCard({ server, onJoin, onCopy, className = "" }: S
                       <span className="w-7 shrink-0 text-slate-600 dark:text-slate-400">[{player.score}]</span>
                       <span className="w-16 shrink-0 text-left text-slate-500 dark:text-slate-500">{player.time}</span>
                       <div className="flex-1 overflow-hidden text-slate-700 dark:text-slate-300">
-                        <div className="whitespace-nowrap overflow-x-auto scrollbar-hide">{player.name}</div>
+                        <div className="whitespace-nowrap overflow-x-auto">{player.name}</div>
                       </div>
                     </div>
                   ))}

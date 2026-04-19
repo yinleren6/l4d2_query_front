@@ -34,7 +34,8 @@ export default function PlayerListTab() {
     } finally {
       if (mountedRef.current) setLoadingGroups(false);
     }
-  }, [isAdmin, selectedGroup]);
+    // eslint-disable-next-line
+  }, [isAdmin]);
 
   useEffect(() => {
     if (isAdmin) fetchGroups();

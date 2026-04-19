@@ -33,7 +33,7 @@ const StreamingServerList = forwardRef<StreamingServerListRef, StreamingServerLi
   const pendingTimeoutsRef = useRef<Record<string, number>>({});
   const onLoadingChangeRef = useRef(onLoadingChange);
   const onErrorRef = useRef(onError);
-  const VITE_API_HOST = import.meta.env.VITE_API_HOST;
+
   const onServersChangeRef = useRef(onServersChange);
 
   // 辅助函数：获取当前时间戳字符串
@@ -102,7 +102,7 @@ const StreamingServerList = forwardRef<StreamingServerListRef, StreamingServerLi
   useEffect(() => {
     if (!groupID || !isAutoRefresh) return;
     cleanup();
-    let wsUrl = `${window.location.protocol === "https:" ? "wss:" : "ws:"}//${VITE_API_HOST}/api/ws/stream/${groupID}`;
+    let wsUrl = `${window.location.protocol === "https:" ? "wss:" : "ws:"}//${window.location.host}/api/ws/stream/${groupID}`;
     if (token) {
       wsUrl += `?token=${encodeURIComponent(token)}`;
     }
@@ -243,11 +243,13 @@ const StreamingServerList = forwardRef<StreamingServerListRef, StreamingServerLi
 
     return () => {
       console.log(`[${getTimestamp()}] 清理 WebSocket 连接`);
-      ws.close();
+      if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+        wsRef.current.close();
+      }
       if (heartbeatIntervalRef.current) clearInterval(heartbeatIntervalRef.current);
       if (reconnectTimerRef.current) clearTimeout(reconnectTimerRef.current);
     };
-  }, [groupID, isAutoRefresh, token, connectionKey, cleanup, onVersionUpdate, VITE_API_HOST]);
+  }, [groupID, isAutoRefresh, token, connectionKey, cleanup, onVersionUpdate]);
 
   useEffect(() => {
     mountedRef.current = true;

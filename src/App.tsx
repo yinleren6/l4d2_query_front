@@ -42,7 +42,7 @@ export default function App() {
                   <DashboardLayout />
                 </ProtectedRoute>
               }>
-              <Route index element={<OverviewTab />} />
+              <Route index element={<Navigate to="/dashboard/overview" replace />} />
               <Route path="overview" element={<OverviewTab />} />
               <Route path="serverconfig" element={<ServerConfigTab />} />
               <Route path="appconfig" element={<AppVersionTab />} />

@@ -78,7 +78,6 @@
   background: linear-gradient(90deg, rgba(243, 244, 246, 0.6) 25%, rgba(229, 231, 235, 0.6) 50%, rgba(243, 244, 246, 0.6) 75%);
   background-size: 200% 100%;
   animation: skeleton-shine 3s infinite linear;
-  dark: bg-gray-800;
 }
 
 @layer base {

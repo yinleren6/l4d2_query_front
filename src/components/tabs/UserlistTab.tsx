@@ -21,7 +21,8 @@ export default function WhitelistTab() {
   const navigate = useNavigate();
   const abortControllerRef = useRef<AbortController | null>(null);
   const mountedRef = useRef(true);
-  function formatIsoDate(isoStr: string): string {
+  function formatIsoDate(isoStr: string | null | undefined): string {
+    if (!isoStr) return "";
     const d = new Date(isoStr);
     if (isNaN(d.valueOf())) return "";
 

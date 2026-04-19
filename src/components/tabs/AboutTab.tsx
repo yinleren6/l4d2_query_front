@@ -41,12 +41,12 @@ export default function AboutTab() {
       const res = await request.get("/api/admin/update/latest");
       const data = res.data;
       setLatest({
-        lastestFrontversion: data.FrontVersion || "",
-        lastestFrontbuildTime: data.FrontbuildTime || "",
-        lastestBackendVersion: data.BackendVersion || "",
-        lastestBackendBuildTime: data.BackendBuildTime || "",
+        frontVersion: data.FrontVersion || "",
+        frontbuildTime: data.FrontbuildTime || "",
+        backendVersion: data.BackendVersion || "",
+        backendBuildTime: data.BackendBuildTime || "",
         force: data.Force || false,
-        message: data.Message,
+        message: data.Message || "",
       });
       toast.success("版本信息已刷新");
     } catch (err: any) {
@@ -77,11 +77,19 @@ export default function AboutTab() {
   };
 
   const waitForServiceRecovery = () => {
+    let attempts = 0;
+    const maxAttempts = 30; // 最多等待 60 秒
     const checkHealth = async () => {
       try {
         await request.get("/api/ok");
         window.location.reload();
       } catch {
+        attempts++;
+        if (attempts >= maxAttempts) {
+          toast.error("服务重启超时，请手动刷新页面");
+          setUpdating(false);
+          return;
+        }
         setTimeout(checkHealth, 2000);
       }
     };
@@ -92,7 +100,7 @@ export default function AboutTab() {
     fetchCurrentVersion();
   }, []);
 
-  const hasNewVersion = latest && current && (latest.lastestBackendVersion !== current.backendVersion || latest.lastestFrontversion !== current.frontVersion);
+  const hasNewVersion = latest && current && (latest.backendBuildTime !== current.backendVersion || latest.frontVersion !== current.frontVersion);
   const isForce = latest?.force;
 
   return (
@@ -139,16 +147,16 @@ export default function AboutTab() {
               </div>
               <div className="grid grid-cols-2 gap-2 text-sm">
                 <div>
-                  前端：<code className="bg-muted px-1 rounded">{latest.lastestFrontversion}</code>
+                  前端：<code className="bg-muted px-1 rounded">{latest.frontVersion}</code>
                 </div>
                 <div>
-                  前端时间：<code className="bg-muted px-1 rounded">{latest.lastestFrontbuildTime}</code>
+                  前端时间：<code className="bg-muted px-1 rounded">{latest.frontbuildTime}</code>
                 </div>
                 <div>
-                  后端：<code className="bg-muted px-1 rounded">{latest.lastestBackendVersion}</code>
+                  后端：<code className="bg-muted px-1 rounded">{latest.backendVersion}</code>
                 </div>
                 <div>
-                  后端时间：<code className="bg-muted px-1 rounded">{latest.lastestBackendBuildTime}</code>
+                  后端时间：<code className="bg-muted px-1 rounded">{latest.backendBuildTime}</code>
                 </div>
               </div>
               {latest.message && <p className="text-sm text-muted-foreground mt-2">{latest.message}</p>}
@@ -156,7 +164,7 @@ export default function AboutTab() {
                 <Alert className="mt-2" variant={isForce ? "destructive" : "default"}>
                   <AlertCircle className="h-4 w-4" />
                   <AlertTitle>发现新版本</AlertTitle>
-                  <AlertDescription>{isForce ? "更新加载中～服务要重启一下下，很快就好啦，请稍等！" : "唔…… 到底更新了什么呢？我完全不清楚哦……" + latest.message}</AlertDescription>
+                  <AlertDescription>{isForce ? "更新加载中～服务要重启一下下，很快就好啦，请稍等！" : "唔... 到底更新了什么呢？我完全不清楚哦 " + latest.message}</AlertDescription>
                 </Alert>
               )}
             </div>

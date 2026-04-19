@@ -60,12 +60,15 @@ export default function AccountPage() {
           </div>
         )}
 
-        <div className="flex gap-2 pt-2">
-          <Button variant="destructive" onClick={handleRefreshToken} disabled={loading} className="flex-1">
-            <ShieldAlert className="w-4 h-4 mr-2" />
-            {loading ? "刷新中..." : "刷新群登录Token"}
-          </Button>
-        </div>
+        {user.role !== "admin" && (
+          <div className="flex gap-2 pt-2">
+            <Button variant="destructive" onClick={handleRefreshToken} disabled={loading} className="flex-1">
+              <ShieldAlert className="w-4 h-4 mr-2" />
+              {loading ? "刷新中..." : "刷新群登录Token"}
+            </Button>
+          </div>
+        )}
+        {user.role === "admin" && <div className="text-sm text-muted-foreground">管理员账户请前往「群组列表」刷新用户的 Token。</div>}
       </Card>
     </div>
   );

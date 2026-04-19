@@ -17,9 +17,6 @@ export default function OverviewTab() {
   const abortControllerRef = useRef<AbortController | null>(null);
 
   const fetchStats = useCallback(async () => {
-    if (mountedRef.current) {
-      setLoading(false);
-    }
     if (abortControllerRef.current) {
       abortControllerRef.current.abort();
     }

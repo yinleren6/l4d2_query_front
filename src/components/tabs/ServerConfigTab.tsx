@@ -76,7 +76,8 @@ export default function ServerConfigTab() {
     } finally {
       if (mountedRef.current) setLoading(false);
     }
-  }, [currentGroupId, user]);
+    // eslint-disable-next-line
+  }, [currentGroupId, user?.role]);
 
   useEffect(() => {
     mountedRef.current = true;

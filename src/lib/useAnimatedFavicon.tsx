@@ -42,11 +42,14 @@ export function useAnimatedFavicon() {
       },
     };
     const timer = setInterval(() => {
-      const link = document.querySelector<HTMLLinkElement>("head > link[rel*='icon']");
-      if (link) {
-        const url = gif.next();
-        link.href = url;
+      let link = document.querySelector<HTMLLinkElement>("head > link[rel*='icon']");
+      if (!link) {
+        link = document.createElement("link");
+        link.rel = "icon";
+        document.head.appendChild(link);
       }
+      const url = gif.next();
+      link.href = url;
     }, 60);
 
     return () => clearInterval(timer);

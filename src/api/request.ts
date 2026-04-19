@@ -1,8 +1,8 @@
 import axios from 'axios'
 import { toast } from 'sonner'
 import { useAuthStore } from '@/store/AuthState'
-const API_HOST = import.meta.env.VITE_API_HOST
-const request = axios.create({ baseURL: API_HOST })
+
+const request = axios.create({ baseURL: "/" })
 
 let isRefreshing = false
 let failedQueue: any[] = []
@@ -24,7 +24,7 @@ request.interceptors.request.use(
     if (userStr) {
       try {
         const user = JSON.parse(userStr)
-        const token = user.jwtToken || user.accessToken
+        const token = user.jwtToken
         if (token && typeof token === 'string' && token.trim()) {
           config.headers.Authorization = `Bearer ${token}`
         } else {
@@ -82,23 +82,19 @@ request.interceptors.response.use(
     isRefreshing = true
 
     try {
-      const { data } = await axios.post('/api/refresh-token', {
-        refreshToken: refreshToken
-      })
+      const { data } = await axios.post('/api/refresh', { refreshToken: refreshToken })
       const newUser = {
         ...user,
-        token: data.accessToken,
-        accessToken: data.accessToken,
+        jwtToken: data.token,
         refreshToken: data.refreshToken
       }
 
       localStorage.setItem('user', JSON.stringify(newUser))
       useAuthStore.getState().setUser(newUser)
-      processQueue(null, data.accessToken)
+      processQueue(null, data.token)
+      originalConfig.headers.Authorization = `Bearer ${data.token}`
 
-      originalConfig.headers.Authorization = `Bearer ${data.accessToken}`
       return request(originalConfig)
-
     } catch (refreshError) {
       processQueue(refreshError, null)
       toast.error('登录已过期，请重新登录')

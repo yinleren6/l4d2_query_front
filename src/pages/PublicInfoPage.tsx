@@ -193,7 +193,7 @@ export default function PublicServerInfo() {
 
   useEffect(() => {
     if (groupID) {
-      request.post("/api/public/record", { group_id: groupID }).catch((err) => console.warn("api访问失败", err));
+      request.post("/api/public/record", { group_ID: groupID }).catch((err) => console.warn("api访问失败", err));
     }
   }, [groupID]);
 

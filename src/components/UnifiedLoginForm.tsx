@@ -76,8 +76,9 @@ export default function UnifiedLoginForm({ onAdminLogin, onTokenLogin, loading }
           ID 登录
         </button>
       </div>
+
       <div className="relative grow">
-        <div className={`absolute w-full transition-all duration-300 ease-in-out ${tab === "admin" ? "opacity-100 translate-y-0 pointer-events-auto" : "opacity-0 translate-y-4 pointer-events-none"}`}>
+        <div className={tab === "admin" ? "block" : "hidden"}>
           <div className="space-y-4 mb-6">
             <Input
               placeholder="ID"
@@ -98,7 +99,8 @@ export default function UnifiedLoginForm({ onAdminLogin, onTokenLogin, loading }
             />
           </div>
         </div>
-        <div className={`absolute w-full transition-all duration-300 ease-in-out ${tab === "token" ? "opacity-100 translate-y-0 pointer-events-auto" : "opacity-0 -translate-y-4 pointer-events-none"}`}>
+
+        <div className={tab === "token" ? "block" : "hidden"}>
           <div className="relative mb-6">
             <HelpCircle className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
             <Input
@@ -111,35 +113,36 @@ export default function UnifiedLoginForm({ onAdminLogin, onTokenLogin, loading }
             />
           </div>
         </div>
-        <div className="absolute w-full top-30">
-          <Button onClick={handleSubmit} disabled={loading} className="w-full h-10 text-xs font-semibold rounded-xl bg-blue-600 hover:bg-blue-700 transition-colors">
-            {loading ? "验证中..." : "验证并进入"}
-          </Button>
-          {tab === "token" && (
-            <div className="flex justify-between mt-4 transition-opacity duration-300">
-              <a
-                href="#"
-                className="flex items-center gap-2 text-blue-600 hover:text-blue-700 text-xs transition-colors"
-                onClick={(e) => {
-                  e.preventDefault();
-                  toast.info("请联系管理员获取 Access Token");
-                }}>
-                <HelpCircle className="w-3 h-3" />
-                我没有 Token，我该去哪里获得 Token?
-              </a>
-              <a
-                href="#"
-                className="flex items-center gap-2 text-blue-600 hover:text-blue-700 text-xs transition-colors"
-                onClick={(e) => {
-                  e.preventDefault();
-                  toast.info("请联系管理员注册");
-                }}>
-                <HelpCircle className="w-3 h-3" />
-                注册
-              </a>
-            </div>
-          )}
-        </div>
+
+        {/* <div className="  w-full top-30"> */}
+        <Button onClick={handleSubmit} disabled={loading} className="w-full h-10 text-xs font-semibold rounded-xl bg-blue-600 hover:bg-blue-700 transition-colors">
+          {loading ? "验证中..." : "验证并进入"}
+        </Button>
+        {tab === "token" && (
+          <div className="flex justify-between mt-4 transition-opacity duration-300">
+            <a
+              href="#"
+              className="flex items-center gap-2 text-blue-600 hover:text-blue-700 text-xs transition-colors"
+              onClick={(e) => {
+                e.preventDefault();
+                toast.info("请联系管理员获取 Access Token");
+              }}>
+              <HelpCircle className="w-3 h-3" />
+              我没有 Token，我该去哪里获得 Token?
+            </a>
+            <a
+              href="#"
+              className="flex items-center gap-2 text-blue-600 hover:text-blue-700 text-xs transition-colors"
+              onClick={(e) => {
+                e.preventDefault();
+                toast.info("请联系管理员注册");
+              }}>
+              <HelpCircle className="w-3 h-3" />
+              注册
+            </a>
+          </div>
+        )}
+        {/* </div> */}
       </div>
     </Card>
   );
