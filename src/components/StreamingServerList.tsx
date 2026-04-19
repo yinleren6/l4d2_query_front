@@ -35,11 +35,16 @@ const StreamingServerList = forwardRef<StreamingServerListRef, StreamingServerLi
   const onErrorRef = useRef(onError);
   const VITE_API_HOST = import.meta.env.VITE_API_HOST;
   const onServersChangeRef = useRef(onServersChange);
+
+  // 辅助函数：获取当前时间戳字符串
+  const getTimestamp = () => new Date().toISOString().slice(11, 23);
+
   useEffect(() => {
     onLoadingChangeRef.current = onLoadingChange;
     onErrorRef.current = onError;
     onServersChangeRef.current = onServersChange;
   }, [onLoadingChange, onError, onServersChange]);
+
   const lastTimeRef = useRef<number>(0);
   useEffect(() => {
     lastTimeRef.current = Date.now();
@@ -49,6 +54,7 @@ const StreamingServerList = forwardRef<StreamingServerListRef, StreamingServerLi
     if (isAutoRefresh) {
       autoRefreshIntervalRef.current = window.setInterval(() => {
         if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+          console.log(`[${getTimestamp()}] 发送自动刷新消息 (refresh)`);
           wsRef.current.send(JSON.stringify({ type: "refresh" }));
         }
       }, 15000);
@@ -57,6 +63,7 @@ const StreamingServerList = forwardRef<StreamingServerListRef, StreamingServerLi
       if (autoRefreshIntervalRef.current) clearInterval(autoRefreshIntervalRef.current);
     };
   }, [isAutoRefresh]);
+
   useEffect(() => {
     onServersChangeRef.current?.(servers);
   }, [servers]);
@@ -81,6 +88,7 @@ const StreamingServerList = forwardRef<StreamingServerListRef, StreamingServerLi
     if (isRefreshing.current) return;
     if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
       isRefreshing.current = true;
+      console.log(`[${getTimestamp()}] 手动刷新 (refresh_btn + check_update)`);
       wsRef.current.send(JSON.stringify({ type: "refresh_btn" }));
       wsRef.current.send(JSON.stringify({ type: "check_update" }));
       setTimeout(() => {
@@ -90,6 +98,7 @@ const StreamingServerList = forwardRef<StreamingServerListRef, StreamingServerLi
   }, []);
 
   useImperativeHandle(ref, () => ({ refresh }));
+
   useEffect(() => {
     if (!groupID || !isAutoRefresh) return;
     cleanup();
@@ -97,32 +106,39 @@ const StreamingServerList = forwardRef<StreamingServerListRef, StreamingServerLi
     if (token) {
       wsUrl += `?token=${encodeURIComponent(token)}`;
     }
-
+    console.log(`[${getTimestamp()}] 创建 WebSocket 连接: ${wsUrl}`);
     const ws = new WebSocket(wsUrl);
+    // eslint-disable-next-line react-hooks/immutability
     wsRef.current = ws;
 
     ws.onopen = () => {
+      console.log(`[${getTimestamp()}] WebSocket 连接已打开 (readyState=${ws.readyState})`);
       toast.success("嘀嘀~电波对接成功！");
-      // console.log(new Date(Date.now()).toTimeString().split(" ")[0] + "." + new Date(Date.now()).getMilliseconds().toString().padStart(3, "0"), logInterval(), "WebSocket connected");
       reconnectAttempts.current = 0;
       setLoading(true);
       setError("");
       if (heartbeatIntervalRef.current) clearInterval(heartbeatIntervalRef.current);
       heartbeatIntervalRef.current = window.setInterval(() => {
         if (ws.readyState === WebSocket.OPEN) {
+          console.log(`[${getTimestamp()}] 发送心跳 ping`);
           ws.send(JSON.stringify({ type: "ping" }));
+        } else {
+          console.log(`[${getTimestamp()}] 心跳 skipped, readyState=${ws.readyState}`);
         }
       }, 30000);
       ws.send(JSON.stringify({ type: "check_update" }));
+      console.log(`[${getTimestamp()}] 发送 check_update`);
     };
 
     ws.onmessage = (event) => {
       try {
         const message = JSON.parse(event.data);
         const { type, data } = message;
+        console.log(`[${getTimestamp()}] 收到消息 type=${type}, data=${JSON.stringify(data).substring(0, 200)}`);
 
         if (type === "order") {
           const order = data.order as string[];
+          console.log(`[${getTimestamp()}] 收到 order, 数量=${order.length}`);
           setServerOrder(order);
           setServersMap((prev) => {
             const newMap = { ...prev };
@@ -145,6 +161,7 @@ const StreamingServerList = forwardRef<StreamingServerListRef, StreamingServerLi
                   setServersMap((prevMap) => {
                     const target = prevMap[addr];
                     if (target && target.ServerName === "加载中...") {
+                      console.log(`[${getTimestamp()}] 地址 ${addr} 查询超时，标记为失败`);
                       return {
                         ...prevMap,
                         [addr]: {
@@ -164,6 +181,7 @@ const StreamingServerList = forwardRef<StreamingServerListRef, StreamingServerLi
           });
         } else if (type === "server") {
           const serverData = data as ServerInfo;
+          console.log(`[${getTimestamp()}] 收到 server: ${serverData.ServerAddress} (${serverData.ServerName})`);
           if (pendingTimeoutsRef.current[serverData.ServerAddress]) {
             clearTimeout(pendingTimeoutsRef.current[serverData.ServerAddress]);
             delete pendingTimeoutsRef.current[serverData.ServerAddress];
@@ -173,26 +191,29 @@ const StreamingServerList = forwardRef<StreamingServerListRef, StreamingServerLi
             [serverData.ServerAddress]: serverData,
           }));
         } else if (type === "done") {
+          console.log(`[${getTimestamp()}] 收到 done, total=${data.total}`);
           setLoading(false);
           onLoadingChangeRef.current?.(false);
         } else if (type === "error") {
           const errMsg = data?.error || "连接失败";
+          console.error(`[${getTimestamp()}] 收到 error: ${errMsg}`);
           setError(errMsg);
           onErrorRef.current?.(errMsg);
           setLoading(false);
           onLoadingChangeRef.current?.(false);
         } else if (type === "pong") {
-          // pong
+          console.log(`[${getTimestamp()}] 收到 pong`);
         } else if (type === "version_update") {
+          console.log(`[${getTimestamp()}] 收到 version_update`, data);
           onVersionUpdate?.(data);
         }
       } catch (e) {
-        console.error("电波识别失败了", e);
+        console.error(`[${getTimestamp()}] 消息解析失败:`, e, "原始数据:", event.data);
       }
     };
 
     ws.onerror = (err) => {
-      console.error("WebSocket error", err);
+      console.error(`[${getTimestamp()}] WebSocket 错误:`, err);
       const errMsg = "嘀嘀… 通讯已断开";
       setError(errMsg);
       onErrorRef.current?.(errMsg);
@@ -201,9 +222,8 @@ const StreamingServerList = forwardRef<StreamingServerListRef, StreamingServerLi
     };
 
     ws.onclose = (closeEvent) => {
-      console.log("code:", closeEvent.code, "reason:", closeEvent.reason);
+      console.log(`[${getTimestamp()}] WebSocket 关闭: code=${closeEvent.code}, reason="${closeEvent.reason}", wasClean=${closeEvent.wasClean}, readyState=${ws.readyState}`);
       toast.error("嘀嘀… 通讯中断，正在努力重新对接电波中✨");
-      // console.log(new Date(Date.now()).toTimeString().split(" ")[0] + "." + new Date(Date.now()).getMilliseconds().toString().padStart(3, "0"), logInterval(), "WebSocket closed");
       if (heartbeatIntervalRef.current) {
         clearInterval(heartbeatIntervalRef.current);
         heartbeatIntervalRef.current = null;
@@ -211,8 +231,10 @@ const StreamingServerList = forwardRef<StreamingServerListRef, StreamingServerLi
       if (isAutoRefresh && mountedRef.current) {
         const delay = Math.min(30000, 1000 * Math.pow(2, reconnectAttempts.current));
         reconnectAttempts.current++;
+        console.log(`[${getTimestamp()}] 计划 ${delay}ms 后重连 (尝试次数=${reconnectAttempts.current})`);
         reconnectTimerRef.current = window.setTimeout(() => {
           if (mountedRef.current && isAutoRefresh) {
+            console.log(`[${getTimestamp()}] 触发重连 (connectionKey=${connectionKey + 1})`);
             setConnectionKey((k) => k + 1);
           }
         }, delay);
@@ -220,11 +242,12 @@ const StreamingServerList = forwardRef<StreamingServerListRef, StreamingServerLi
     };
 
     return () => {
+      console.log(`[${getTimestamp()}] 清理 WebSocket 连接`);
       ws.close();
       if (heartbeatIntervalRef.current) clearInterval(heartbeatIntervalRef.current);
       if (reconnectTimerRef.current) clearTimeout(reconnectTimerRef.current);
     };
-  }, [groupID, isAutoRefresh, token, connectionKey, cleanup, onVersionUpdate]);
+  }, [groupID, isAutoRefresh, token, connectionKey, cleanup, onVersionUpdate, VITE_API_HOST]);
 
   useEffect(() => {
     mountedRef.current = true;
