@@ -33,7 +33,7 @@ const StreamingServerList = forwardRef<StreamingServerListRef, StreamingServerLi
   const pendingTimeoutsRef = useRef<Record<string, number>>({});
   const onLoadingChangeRef = useRef(onLoadingChange);
   const onErrorRef = useRef(onError);
-  const API_URL = import.meta.env.VITE_API_URL;
+  const VITE_API_HOST = import.meta.env.VITE_API_HOST;
   const onServersChangeRef = useRef(onServersChange);
   useEffect(() => {
     onLoadingChangeRef.current = onLoadingChange;
@@ -107,7 +107,7 @@ const StreamingServerList = forwardRef<StreamingServerListRef, StreamingServerLi
   useEffect(() => {
     if (!groupID || !isAutoRefresh) return;
     cleanup();
-    let wsUrl = `${window.location.protocol === "https:" ? "wss:" : "ws:"}//${API_URL}/api/ws/stream/${groupID}`;
+    let wsUrl = `${window.location.protocol === "https:" ? "wss:" : "ws:"}//${VITE_API_HOST}/api/ws/stream/${groupID}`;
     if (token) {
       wsUrl += `?token=${encodeURIComponent(token)}`;
     }
