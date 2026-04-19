@@ -44,28 +44,14 @@ const StreamingServerList = forwardRef<StreamingServerListRef, StreamingServerLi
   useEffect(() => {
     lastTimeRef.current = Date.now();
   }, []);
-  // const logInterval = () => {
-  //   const now = Date.now();
-  //   const diff = now - lastTimeRef.current;
-  //   lastTimeRef.current = now;
-  //   const pad = (num: number, length = 2) => num.toString().padStart(length, "0");
-  //   const ms = diff % 1000;
-  //   const sec = Math.floor(diff / 1000) % 60;
-  //   const min = Math.floor(diff / 60000) % 60;
-  //   const hour = Math.floor(diff / 3600000);
-  //   if (hour > 0 || min > 0 || sec > 1) {
-  //     return `[间隔] ${pad(hour)}:${pad(min)}:${pad(sec)}.${pad(ms, 3)}`;
-  //   } else {
-  //     return ``;
-  //   }
-  // };
+
   useEffect(() => {
     if (isAutoRefresh) {
       autoRefreshIntervalRef.current = window.setInterval(() => {
         if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
           wsRef.current.send(JSON.stringify({ type: "refresh" }));
         }
-      }, 30000);
+      }, 15000);
     }
     return () => {
       if (autoRefreshIntervalRef.current) clearInterval(autoRefreshIntervalRef.current);
