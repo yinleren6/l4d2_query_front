@@ -1,8 +1,8 @@
 import axios from 'axios'
 import { toast } from 'sonner'
 import { useAuthStore } from '@/store/AuthState'
-
-const request = axios.create({ baseURL: '/' })
+const API_HOST = import.meta.env.VITE_API_HOST
+const request = axios.create({ baseURL: API_HOST })
 
 let isRefreshing = false
 let failedQueue: any[] = []

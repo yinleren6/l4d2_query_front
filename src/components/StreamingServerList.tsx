@@ -3,7 +3,7 @@ import { forwardRef, useImperativeHandle, useState, useEffect, useCallback, useR
 import ServerList from "./ServerList";
 import { ServerInfo } from "./ServerCard";
 import { toast } from "sonner";
-
+const API_URL = import.meta.env.VITE_API_URL;
 interface StreamingServerListProps {
   groupID: string;
   token?: string;
@@ -106,7 +106,7 @@ const StreamingServerList = forwardRef<StreamingServerListRef, StreamingServerLi
   useEffect(() => {
     if (!groupID || !isAutoRefresh) return;
     cleanup();
-    let wsUrl = `${window.location.protocol === "https:" ? "wss:" : "ws:"}//${window.location.host}/api/ws/stream/${groupID}`;
+    let wsUrl = `${window.location.protocol === "https:" ? "wss:" : "ws:"}//${API_URL}/api/ws/stream/${groupID}`;
     if (token) {
       wsUrl += `?token=${encodeURIComponent(token)}`;
     }
