@@ -3,7 +3,7 @@ import { forwardRef, useImperativeHandle, useState, useEffect, useCallback, useR
 import ServerList from "./ServerList";
 import { ServerInfo } from "./ServerCard";
 import { toast } from "sonner";
-const API_URL = import.meta.env.VITE_API_URL;
+
 interface StreamingServerListProps {
   groupID: string;
   token?: string;
@@ -33,6 +33,7 @@ const StreamingServerList = forwardRef<StreamingServerListRef, StreamingServerLi
   const pendingTimeoutsRef = useRef<Record<string, number>>({});
   const onLoadingChangeRef = useRef(onLoadingChange);
   const onErrorRef = useRef(onError);
+  const API_URL = import.meta.env.VITE_API_URL;
   const onServersChangeRef = useRef(onServersChange);
   useEffect(() => {
     onLoadingChangeRef.current = onLoadingChange;
