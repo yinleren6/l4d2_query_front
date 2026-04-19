@@ -96,9 +96,8 @@ export default function PublicServerInfo() {
     [showPage]
   );
 
-  let publicHost;
   const navigateToDashPage = () => {
-    publicHost = window.location.host.replace("l.", "dash.");
+    const publicHost = window.location.host.replace("l.", "dash.");
     window.open(`https://${publicHost}/login`, "_blank");
   };
 

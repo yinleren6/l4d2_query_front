@@ -40,9 +40,9 @@ export default function PlayerListTab() {
     if (isAdmin) fetchGroups();
     else if (currentUserId) setSelectedGroup(currentUserId);
   }, [isAdmin, currentUserId, fetchGroups]);
-  let publicHost;
+
   const navigateToPublic = () => {
-    publicHost = window.location.host.replace("dash.", "l.");
+    const publicHost = window.location.host.replace("dash.", "l.");
     window.open(`https://${publicHost}/p/${selectedGroup}`, "_blank");
   };
 
