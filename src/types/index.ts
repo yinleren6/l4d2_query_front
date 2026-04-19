@@ -36,7 +36,7 @@ export interface AppVersionFormData {
 
 export interface LatestVersionInfo {
   frontVersion: string;
-  frontbuildTime: string;
+  frontBuildTime: string;
   backendVersion: string;
   backendBuildTime: string;
   force: boolean;

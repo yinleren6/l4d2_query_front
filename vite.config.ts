@@ -90,52 +90,36 @@ const generateVersionPlugin = () => {
 
       // 准备前端版本字段
       const frontendFields = {
-        Frontversion: fullVersion,
-        FrontbuildTime: buildTime
+        frontVersion: fullVersion,
+        frontBuildTime: buildTime
       }
 
       // 最终要写入的对象：先复制备份中的内容（保留后端字段），再覆盖/添加前端字段
       let finalData = {}
       if (backupVersionData && typeof backupVersionData === 'object') {
-        // 保留备份中的所有字段
         finalData = { ...backupVersionData }
       }
-
-      // 将前端字段合并进去（如果字段已存在则覆盖，不存在则添加）
       Object.assign(finalData, frontendFields)
 
       const distVersionPath = path.join(distDir, 'version.json')
       fs.writeFileSync(distVersionPath, JSON.stringify(finalData, null, 2), 'utf-8')
 
-      // ====================== 【新增】开始：生成 dist/config/latest.json ======================
+      // ====================== 【最终修复】生成 dist/config/latest.json ======================
       const configDir = path.resolve(__dirname, 'dist', 'config')
-      // 自动创建 config 目录（不存在则递归创建）
       if (!fs.existsSync(configDir)) {
         fs.mkdirSync(configDir, { recursive: true })
       }
       const latestJsonPath = path.join(configDir, 'latest.json')
 
-      // 读取现有 latest.json，保留所有原有字段
-      let latestData = {}
-      if (fs.existsSync(latestJsonPath)) {
-        try {
-          const raw = fs.readFileSync(latestJsonPath, 'utf-8')
-          latestData = JSON.parse(raw)
-        } catch (e) {
-          console.warn('[版本插件] 读取 dist/config/latest.json 失败，使用空对象', e)
-          latestData = {}
-        }
-      }
-      // 仅更新前端两个字段，其他字段完全保留
-      Object.assign(latestData, frontendFields)
-      // 写入文件
+      // 直接复用最终数据，无重复逻辑
+      const latestData = { ...finalData }
       fs.writeFileSync(latestJsonPath, JSON.stringify(latestData, null, 2), 'utf-8')
-      // ====================== 【新增】结束 ======================
+      // ====================== 【修复】结束 ======================
 
       // 控制台输出
       console.log('\n📋 版本更新完成')
-      console.log(`Frontversion: ${oldVersion} --> ${fullVersion}`)
-      console.log(`FrontbuildTime: ${oldBuildTime} --> ${buildTime}`)
+      console.log(`frontVersion: ${oldVersion} --> ${fullVersion}`)
+      console.log(`frontBuildTime: ${oldBuildTime} --> ${buildTime}`)
       console.log(`📁 dist/version.json 已生成`)
       console.log(`📁 dist/config/latest.json 已生成\n`) // 新增日志
     },

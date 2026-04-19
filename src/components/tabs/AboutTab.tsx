@@ -1,8 +1,7 @@
-// AboutTab.tsx
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { RefreshCw, Upload, AlertCircle } from "lucide-react";
@@ -24,10 +23,10 @@ export default function AboutTab() {
       const res = await request.get("/api/ok");
       const data = res.data;
       setCurrent({
-        frontVersion: data.FrontVersion || "未知",
-        frontBuildTime: data.FrontbuildTime || "未知",
-        backendVersion: data.BackendVersion || "未知",
-        backendBuildTime: data.BackendBuildTime || "未知",
+        frontVersion: data.frontVersion || "未知",
+        frontBuildTime: data.frontBuildTime || "未知",
+        backendVersion: data.backendVersion || "未知",
+        backendBuildTime: data.backendBuildTime || "未知",
       });
     } catch (err: any) {
       console.error("获取当前版本失败", err);
@@ -41,12 +40,12 @@ export default function AboutTab() {
       const res = await request.get("/api/admin/update/latest");
       const data = res.data;
       setLatest({
-        frontVersion: data.FrontVersion || "",
-        frontbuildTime: data.FrontbuildTime || "",
-        backendVersion: data.BackendVersion || "",
-        backendBuildTime: data.BackendBuildTime || "",
-        force: data.Force || false,
-        message: data.Message || "",
+        frontVersion: data.frontVersion || "",
+        frontBuildTime: data.frontBuildTime || "",
+        backendVersion: data.backendVersion || "",
+        backendBuildTime: data.backendBuildTime || "",
+        force: data.force || false,
+        message: data.message || "",
       });
       toast.success("版本信息已刷新");
     } catch (err: any) {
@@ -78,7 +77,7 @@ export default function AboutTab() {
 
   const waitForServiceRecovery = () => {
     let attempts = 0;
-    const maxAttempts = 30; // 最多等待 60 秒
+    const maxAttempts = 30;
     const checkHealth = async () => {
       try {
         await request.get("/api/ok");
@@ -100,82 +99,87 @@ export default function AboutTab() {
     fetchCurrentVersion();
   }, []);
 
-  const hasNewVersion = latest && current && (latest.backendBuildTime !== current.backendVersion || latest.frontVersion !== current.frontVersion);
+  const hasNewVersion = latest && current && (latest.backendVersion !== current.backendVersion || latest.frontVersion !== current.frontVersion);
   const isForce = latest?.force;
 
   return (
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle>当前版本信息</CardTitle>
-          <CardDescription>正在运行的服务版本</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-2">
-          <div className="flex items-center gap-2">
-            <span className="font-medium w-24">前端版本：</span>
-            <code className="px-2 py-1 bg-muted rounded">{current?.frontVersion || "加载中..."}</code>
-            <span className="font-medium w-24">构建时间：</span>
-            <code className="px-2 py-1 bg-muted rounded">{current?.frontBuildTime || "加载中..."}</code>
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="font-medium w-24">后端版本：</span>
-            <code className="px-2 py-1 bg-muted rounded">{current?.backendVersion || "加载中..."}</code>
-            <span className="font-medium w-24">构建时间：</span>
-            <code className="px-2 py-1 bg-muted rounded">{current?.backendBuildTime || "加载中..."}</code>
-          </div>
-        </CardContent>
-      </Card>
-      <Card>
-        <CardHeader>
-          <CardTitle>版本更新</CardTitle>
-          <CardDescription>检查并更新到最新版本</CardDescription>
+          <CardTitle>版本信息</CardTitle>
+          <CardDescription>当前运行版本与最新可用版本对比</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="flex items-center gap-2">
+          {/* 当前版本 */}
+          <div className="rounded-lg border p-4 space-y-2">
+            <div className="font-medium text-sm text-muted-foreground">当前版本</div>
+            <div className="grid grid-cols-2 gap-2 text-sm">
+              <div>
+                前端：<code className="bg-muted px-1 rounded">{current?.frontVersion || "加载中..."}</code>
+              </div>
+              <div>
+                构建时间：<code className="bg-muted px-1 rounded">{current?.frontBuildTime || "加载中..."}</code>
+              </div>
+              <div>
+                后端：<code className="bg-muted px-1 rounded">{current?.backendVersion || "加载中..."}</code>
+              </div>
+              <div>
+                构建时间：<code className="bg-muted px-1 rounded">{current?.backendBuildTime || "加载中..."}</code>
+              </div>
+            </div>
+          </div>
+
+          {/* 检查更新按钮 + 状态 */}
+          <div className="flex items-center justify-between">
             <Button onClick={handleCheckUpdate} disabled={loading || updating} variant="outline">
               <RefreshCw className={`mr-2 h-4 w-4 ${loading ? "animate-spin" : ""}`} />
               {loading ? "检查中..." : "检查更新"}
             </Button>
-            {latest && <Badge variant={hasNewVersion ? "destructive" : "secondary"}>{hasNewVersion ? "有新版本" : "已是最新"}</Badge>}
+            {latest && (
+              <Badge variant={hasNewVersion ? "default" : "secondary"} className={hasNewVersion ? "bg-green-100 text-green-800 hover:bg-green-200" : ""}>
+                {hasNewVersion ? "有新版本" : "已是最新"}
+              </Badge>
+            )}
           </div>
 
-          {latest && (
+          {/* 最新版本（如果有） */}
+          {latest && hasNewVersion && (
             <div className="rounded-lg border p-4 space-y-2">
               <div className="flex items-center justify-between">
-                <span className="font-medium">最新版本</span>
+                <span className="font-medium text-sm">最新版本</span>
                 {isForce && <Badge variant="destructive">强制更新</Badge>}
               </div>
               <div className="grid grid-cols-2 gap-2 text-sm">
                 <div>
-                  前端：<code className="bg-muted px-1 rounded">{latest.frontVersion}</code>
+                  前端：<code className="bg-muted px-1 rounded">{latest.frontVersion || "—"}</code>
                 </div>
                 <div>
-                  前端时间：<code className="bg-muted px-1 rounded">{latest.frontbuildTime}</code>
+                  构建时间：<code className="bg-muted px-1 rounded">{latest.frontBuildTime || "—"}</code>
                 </div>
                 <div>
-                  后端：<code className="bg-muted px-1 rounded">{latest.backendVersion}</code>
+                  后端：<code className="bg-muted px-1 rounded">{latest.backendVersion || "—"}</code>
                 </div>
                 <div>
-                  后端时间：<code className="bg-muted px-1 rounded">{latest.backendBuildTime}</code>
+                  构建时间：<code className="bg-muted px-1 rounded">{latest.backendBuildTime || "—"}</code>
                 </div>
               </div>
               {latest.message && <p className="text-sm text-muted-foreground mt-2">{latest.message}</p>}
-              {hasNewVersion && (
-                <Alert className="mt-2" variant={isForce ? "destructive" : "default"}>
-                  <AlertCircle className="h-4 w-4" />
-                  <AlertTitle>发现新版本</AlertTitle>
-                  <AlertDescription>{isForce ? "更新加载中～服务要重启一下下，很快就好啦，请稍等！" : "唔... 到底更新了什么呢？我完全不清楚哦 " + latest.message}</AlertDescription>
-                </Alert>
-              )}
+              <Alert className={`mt-2 ${!isForce ? "border-green-500 bg-green-50 text-green-700 dark:bg-green-950 dark:text-green-400" : ""}`} variant={isForce ? "destructive" : "default"}>
+                <AlertCircle className="h-4 w-4" />
+                <AlertTitle>发现新版本</AlertTitle>
+                <AlertDescription>{isForce ? `【强制更新】${latest.message}，服务将自动重启，请稍候！` : `🎉 发现新版本，点击下方按钮立即更新~`}</AlertDescription>
+              </Alert>
             </div>
           )}
+
+          {/* 更新按钮（仅当有新版本时显示） */}
+          {hasNewVersion && (
+            <Button onClick={handleTriggerUpdate} disabled={updating || loading} className="w-full" variant={isForce ? "destructive" : "default"}>
+              <Upload className="mr-2 h-4 w-4" />
+              {updating ? "更新中..." : "立即更新"}
+            </Button>
+          )}
         </CardContent>
-        <CardFooter>
-          <Button onClick={handleTriggerUpdate} disabled={!latest || !hasNewVersion || updating || loading} className="w-full" variant={isForce ? "destructive" : "default"}>
-            <Upload className="mr-2 h-4 w-4" />
-            {updating ? "更新中..." : "立即更新"}
-          </Button>
-        </CardFooter>
       </Card>
     </div>
   );
