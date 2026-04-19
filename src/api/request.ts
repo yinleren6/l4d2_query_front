@@ -2,7 +2,7 @@ import axios from 'axios'
 import { toast } from 'sonner'
 import { useAuthStore } from '@/store/AuthState'
 
-const request = axios.create({ baseURL: '/' })
+const request = axios.create({ baseURL: 'https://api.cn3.top' })
 
 let isRefreshing = false
 let failedQueue: any[] = []
