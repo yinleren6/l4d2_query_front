@@ -125,7 +125,7 @@ const StreamingServerList = forwardRef<StreamingServerListRef, StreamingServerLi
         } else {
           console.log(`[${getTimestamp()}] 心跳 skipped, readyState=${ws.readyState}`);
         }
-      }, 30000);
+      }, 10000);
       ws.send(JSON.stringify({ type: "check_update" }));
       console.log(`[${getTimestamp()}] 发送 check_update`);
     };
