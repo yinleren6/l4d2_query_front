@@ -44,21 +44,21 @@ const StreamingServerList = forwardRef<StreamingServerListRef, StreamingServerLi
   useEffect(() => {
     lastTimeRef.current = Date.now();
   }, []);
-  const logInterval = () => {
-    const now = Date.now();
-    const diff = now - lastTimeRef.current;
-    lastTimeRef.current = now;
-    const pad = (num: number, length = 2) => num.toString().padStart(length, "0");
-    const ms = diff % 1000;
-    const sec = Math.floor(diff / 1000) % 60;
-    const min = Math.floor(diff / 60000) % 60;
-    const hour = Math.floor(diff / 3600000);
-    if (hour > 0 || min > 0 || sec > 1) {
-      return `[间隔] ${pad(hour)}:${pad(min)}:${pad(sec)}.${pad(ms, 3)}`;
-    } else {
-      return ``;
-    }
-  };
+  // const logInterval = () => {
+  //   const now = Date.now();
+  //   const diff = now - lastTimeRef.current;
+  //   lastTimeRef.current = now;
+  //   const pad = (num: number, length = 2) => num.toString().padStart(length, "0");
+  //   const ms = diff % 1000;
+  //   const sec = Math.floor(diff / 1000) % 60;
+  //   const min = Math.floor(diff / 60000) % 60;
+  //   const hour = Math.floor(diff / 3600000);
+  //   if (hour > 0 || min > 0 || sec > 1) {
+  //     return `[间隔] ${pad(hour)}:${pad(min)}:${pad(sec)}.${pad(ms, 3)}`;
+  //   } else {
+  //     return ``;
+  //   }
+  // };
   useEffect(() => {
     if (isAutoRefresh) {
       autoRefreshIntervalRef.current = window.setInterval(() => {
@@ -117,7 +117,7 @@ const StreamingServerList = forwardRef<StreamingServerListRef, StreamingServerLi
 
     ws.onopen = () => {
       toast.success("嘀嘀~电波对接成功！");
-      console.log(new Date(Date.now()).toTimeString().split(" ")[0] + "." + new Date(Date.now()).getMilliseconds().toString().padStart(3, "0"), logInterval(), "WebSocket connected");
+      // console.log(new Date(Date.now()).toTimeString().split(" ")[0] + "." + new Date(Date.now()).getMilliseconds().toString().padStart(3, "0"), logInterval(), "WebSocket connected");
       reconnectAttempts.current = 0;
       setLoading(true);
       setError("");
@@ -214,9 +214,10 @@ const StreamingServerList = forwardRef<StreamingServerListRef, StreamingServerLi
       onLoadingChangeRef.current?.(false);
     };
 
-    ws.onclose = () => {
+    ws.onclose = (closeEvent) => {
+      console.log("code:", closeEvent.code, "reason:", closeEvent.reason);
       toast.error("嘀嘀… 通讯中断，正在努力重新对接电波中✨");
-      console.log(new Date(Date.now()).toTimeString().split(" ")[0] + "." + new Date(Date.now()).getMilliseconds().toString().padStart(3, "0"), logInterval(), "WebSocket closed");
+      // console.log(new Date(Date.now()).toTimeString().split(" ")[0] + "." + new Date(Date.now()).getMilliseconds().toString().padStart(3, "0"), logInterval(), "WebSocket closed");
       if (heartbeatIntervalRef.current) {
         clearInterval(heartbeatIntervalRef.current);
         heartbeatIntervalRef.current = null;
