@@ -7,16 +7,19 @@ import { execSync } from 'child_process'
 
 const getGitInfo = () => {
   try {
-    // 获取总提交次数（作为 build 号）
-    const commitCount = execSync('git rev-list --count HEAD', { encoding: 'utf-8' }).trim()
-    // 获取当前 commit 的短哈希（前 8 位）
-    const shortHash = execSync('git rev-parse --short=8 HEAD', { encoding: 'utf-8' }).trim()
-    return { commitCount, shortHash }
+    // 检查是否是浅克隆
+    const isShallow = execSync('git rev-parse --is-shallow-repository', { encoding: 'utf-8' }).trim() === 'true';
+    if (isShallow) {
+      console.warn('⚠️ 检测到浅克隆仓库，提交次数可能不准确。建议使用 fetch-depth: 0');
+    }
+    const commitCount = execSync('git rev-list --count HEAD', { encoding: 'utf-8' }).trim();
+    const shortHash = execSync('git rev-parse --short=8 HEAD', { encoding: 'utf-8' }).trim();
+    return { commitCount, shortHash };
   } catch (error) {
-    console.warn('⚠️ 无法获取 Git 信息，使用 fallback 值', error)
-    return { commitCount: '0', shortHash: '00000000' }
+    console.warn('⚠️ 无法获取 Git 信息，使用 fallback 值', error);
+    return { commitCount: '0', shortHash: '00000000' };
   }
-}
+};
 
 const generateVersionPlugin = () => {
   let backupVersionData: Record<string, unknown> | null = null
