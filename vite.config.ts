@@ -32,7 +32,7 @@ const generateVersionPlugin = () => {
     // 构建完成后生成新的 dist/version.json（合并备份中的后端字段）
     closeBundle() {
 
-      const buildTime = new Date(3600000 * 8 + new Date().getTimezoneOffset() * 60000).toLocaleString('zh-CN')
+      const buildTime = new Date().toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' })
       // ========== 1. 处理根目录 version.json（存储 major/minor/patch） ==========
       const rootVersionPath = path.resolve(__dirname, 'version.json')
 
