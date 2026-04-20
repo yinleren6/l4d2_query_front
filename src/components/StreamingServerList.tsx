@@ -3,7 +3,7 @@ import { forwardRef, useImperativeHandle, useState, useEffect, useCallback, useR
 import ServerList from "./ServerList";
 import { ServerInfo } from "./ServerCard";
 import { toast } from "sonner";
-
+const API_HOST = import.meta.env.VITE_API_HOST || "";
 interface StreamingServerListProps {
   groupID: string;
   token?: string;
@@ -81,6 +81,13 @@ const StreamingServerList = forwardRef<StreamingServerListRef, StreamingServerLi
       clearTimeout(reconnectTimerRef.current);
       reconnectTimerRef.current = null;
     }
+    if (autoRefreshIntervalRef.current) {
+      clearInterval(autoRefreshIntervalRef.current);
+      autoRefreshIntervalRef.current = null;
+    }
+    // 清理服务器超时定时器
+    Object.values(pendingTimeoutsRef.current).forEach(clearTimeout);
+    pendingTimeoutsRef.current = {};
   }, []);
 
   const wsRef = useRef<WebSocket | null>(null);
@@ -102,7 +109,7 @@ const StreamingServerList = forwardRef<StreamingServerListRef, StreamingServerLi
   useEffect(() => {
     if (!groupID || !isAutoRefresh) return;
     cleanup();
-    let wsUrl = `${window.location.protocol === "https:" ? "wss:" : "ws:"}//${window.location.host}/api/ws/stream/${groupID}`;
+    let wsUrl = `${window.location.protocol === "https:" ? "wss:" : "ws:"}//${API_HOST}/api/ws/stream/${groupID}`;
     if (token) {
       wsUrl += `?token=${encodeURIComponent(token)}`;
     }
@@ -244,12 +251,12 @@ const StreamingServerList = forwardRef<StreamingServerListRef, StreamingServerLi
     return () => {
       console.log(`[${getTimestamp()}] 清理 WebSocket 连接`);
       if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
-        wsRef.current.close();
+        wsRef.current.close(1000, "Component unmount");
       }
-      if (heartbeatIntervalRef.current) clearInterval(heartbeatIntervalRef.current);
-      if (reconnectTimerRef.current) clearTimeout(reconnectTimerRef.current);
+      cleanup();
     };
-  }, [groupID, isAutoRefresh, token, connectionKey, cleanup, onVersionUpdate]);
+    // eslint-disable-next-line
+  }, [groupID, isAutoRefresh, token, connectionKey, cleanup]);
 
   useEffect(() => {
     mountedRef.current = true;
@@ -258,13 +265,6 @@ const StreamingServerList = forwardRef<StreamingServerListRef, StreamingServerLi
       cleanup();
     };
   }, [cleanup]);
-
-  useEffect(() => {
-    return () => {
-      // eslint-disable-next-line react-hooks/exhaustive-deps
-      Object.values(pendingTimeoutsRef.current).forEach(clearTimeout);
-    };
-  }, []);
 
   return (
     <ServerList
