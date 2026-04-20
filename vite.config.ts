@@ -5,7 +5,6 @@ import path from 'path'
 import fs from 'fs'
 import { execSync } from 'child_process'
 
-
 const getGitInfo = () => {
   try {
     // 获取总提交次数（作为 build 号）
@@ -21,11 +20,9 @@ const getGitInfo = () => {
 
 const generateVersionPlugin = () => {
   let backupVersionData: Record<string, unknown> | null = null
-
   return {
     name: 'generate-version',
     apply: 'build',
-
     buildStart() {
       const distVersionPath = path.resolve(__dirname, 'dist', 'version.json')
       if (fs.existsSync(distVersionPath)) {
@@ -41,18 +38,15 @@ const generateVersionPlugin = () => {
       }
     },
 
-    // ✅ 改用 writeBundle 确保构建成功后才写入
+
     writeBundle() {
       const buildTime = new Date().toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' })
       const { commitCount, shortHash } = getGitInfo()
-
       let patch = parseInt(commitCount, 10)
       if (isNaN(patch)) {
         console.warn('⚠️ Git commitCount 无效，使用 0')
         patch = 0
       }
-
-      // 读取根目录 version.json（只读 major/minor，不写回）
       const rootVersionPath = path.resolve(__dirname, 'version.json')
       let major = 0, minor = 0
       if (fs.existsSync(rootVersionPath)) {
@@ -65,44 +59,27 @@ const generateVersionPlugin = () => {
           console.warn('⚠️ 读取 major/minor 失败，使用默认值',e)
         }
       }
-
       const fullVersion = `v${major}.${minor}.${patch}.${shortHash}`
-
-      // ⚠️ 不再写回根目录 version.json，避免污染工作区
-      // 如果你必须写回，请确保该文件已被 .gitignore 忽略
-
       const frontendFields = {
         frontVersion: fullVersion,
         frontBuildTime: buildTime
       }
-
       let finalData = {}
       if (backupVersionData && typeof backupVersionData === 'object') {
         finalData = { ...backupVersionData }
       }
       Object.assign(finalData, frontendFields)
-      Object.assign(finalData, frontendFields)
-
       // 写入 dist/version.json
       const distDir = path.resolve(__dirname, 'dist')
       if (!fs.existsSync(distDir)) fs.mkdirSync(distDir, { recursive: true })
       const distVersionPath = path.join(distDir, 'version.json')
       fs.writeFileSync(distVersionPath, JSON.stringify(finalData, null, 2), 'utf-8')
-
-      // 写入 dist/config/latest.json
-      const configDir = path.resolve(__dirname, 'dist', 'config')
-      if (!fs.existsSync(configDir)) fs.mkdirSync(configDir, { recursive: true })
-      const latestJsonPath = path.join(configDir, 'latest.json')
-      fs.writeFileSync(latestJsonPath, JSON.stringify(finalData, null, 2), 'utf-8')
-
       // 控制台输出
       console.log('\n📋 版本更新完成')
       console.log(`frontVersion: ${fullVersion}`)
       console.log(`frontBuildTime: ${buildTime}`)
       console.log(`📁 dist/version.json 已生成`)
-      console.log(`📁 dist/config/latest.json 已生成\n`)
     }
-
   }
 }
 
