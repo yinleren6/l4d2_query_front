@@ -99,7 +99,7 @@ export default function WhitelistTab() {
   const refreshToken = async (userID: string) => {
     if (!confirm(`确定要刷新群组 ${userID} 的 Token 吗？旧的 Token 将失效。`)) return;
     try {
-      const res = await request.patch(`/api/admin/groups/${userID}/re-token`);
+      const res = await request.post(`/api/admin/groups/${userID}/re-token`);
       setNewCreatedToken({
         userId: userID,
         token: res.data.token,
@@ -123,7 +123,7 @@ export default function WhitelistTab() {
   const toggleEnable = async (userID: string, currentlyEnabled: boolean) => {
     if (!confirm(`确定要${currentlyEnabled ? "禁用" : "启用"}群组 ${userID} 吗？`)) return;
     try {
-      await request.patch(`/api/admin/groups/${userID}/enabled`, { enabled: !currentlyEnabled });
+      await request.post(`/api/admin/groups/${userID}/enabled`, { enabled: !currentlyEnabled });
       toast.success(currentlyEnabled ? "已禁用" : "已启用");
       await loadUserlist();
     } catch {
@@ -138,7 +138,7 @@ export default function WhitelistTab() {
   const deleteGroup = async (userID: string) => {
     if (!confirm(`确定要删除群组 ${userID} 吗？`)) return;
     try {
-      await request.delete(`/api/admin/groups/${userID}`);
+      await request.post(`/api/admin/groups/${userID}`);
       toast.success("删除成功");
       await loadUserlist();
     } catch (err: any) {

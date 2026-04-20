@@ -109,7 +109,7 @@ export default function ServerConfigTab() {
 
       if (user?.role === "admin" && currentGroupId !== user.id) {
         console.log("分支 1 ");
-        response = await request.put(`/api/admin/config/${currentGroupId}`, finalData);
+        response = await request.post(`/api/admin/config/${currentGroupId}`, finalData);
       } else {
         console.log("分支 2 ");
         response = await request.post("/api/save-user-config", finalData);
