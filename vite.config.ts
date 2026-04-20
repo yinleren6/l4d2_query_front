@@ -31,6 +31,8 @@ const generateVersionPlugin = () => {
 
     // 构建完成后生成新的 dist/version.json（合并备份中的后端字段）
     closeBundle() {
+
+      const buildTime = new Date(3600000 * 8 + new Date().getTimezoneOffset() * 60000).toLocaleString('zh-CN')
       // ========== 1. 处理根目录 version.json（存储 major/minor/patch） ==========
       const rootVersionPath = path.resolve(__dirname, 'version.json')
 
@@ -39,7 +41,7 @@ const generateVersionPlugin = () => {
         minor: 0,
         patch: 0,
         version: 'v0.0.0.00000000',
-        buildTime: new Date().toLocaleString('zh-CN')
+        buildTime: buildTime
       }
 
       let versionData
@@ -70,7 +72,7 @@ const generateVersionPlugin = () => {
       }
 
       const fullVersion = `v${versionData.major}.${versionData.minor}.${versionData.patch}.${hash}`
-      const buildTime = new Date().toLocaleString('zh-CN')
+
 
       // 记录旧版本（用于打印）
       const oldVersion = versionData.version || '无'
