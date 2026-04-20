@@ -1,0 +1,7 @@
+{
+  "name": "l4d2-query-front",
+  "compatibility_date": "2026-04-20",
+  "assets": {
+    "directory": "./dist"
+  }
+}
