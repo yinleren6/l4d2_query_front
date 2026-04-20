@@ -3,17 +3,29 @@ import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import path from 'path'
 import fs from 'fs'
-import crypto from 'crypto'
+import { execSync } from 'child_process'
+
+
+const getGitInfo = () => {
+  try {
+    // 获取总提交次数（作为 build 号）
+    const commitCount = execSync('git rev-list --count HEAD', { encoding: 'utf-8' }).trim()
+    // 获取当前 commit 的短哈希（前 8 位）
+    const shortHash = execSync('git rev-parse --short=8 HEAD', { encoding: 'utf-8' }).trim()
+    return { commitCount, shortHash }
+  } catch (error) {
+    console.warn('⚠️ 无法获取 Git 信息，使用 fallback 值', error)
+    return { commitCount: '0', shortHash: '00000000' }
+  }
+}
 
 const generateVersionPlugin = () => {
-  // 用于在构建过程中暂存原有的 dist/version.json 内容
-  let backupVersionData = {} as any
+  let backupVersionData: Record<string, unknown> | null = null
 
   return {
     name: 'generate-version',
     apply: 'build',
 
-    // 在构建开始前备份现有的 dist/version.json
     buildStart() {
       const distVersionPath = path.resolve(__dirname, 'dist', 'version.json')
       if (fs.existsSync(distVersionPath)) {
@@ -29,104 +41,81 @@ const generateVersionPlugin = () => {
       }
     },
 
-    // 构建完成后生成新的 dist/version.json（合并备份中的后端字段）
-    closeBundle() {
-
+    // ✅ 改用 writeBundle 确保构建成功后才写入
+    writeBundle() {
       const buildTime = new Date().toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' })
-      // ========== 1. 处理根目录 version.json（存储 major/minor/patch） ==========
-      const rootVersionPath = path.resolve(__dirname, 'version.json')
+      const { commitCount, shortHash } = getGitInfo()
 
-      const defaultData = {
-        major: 0,
-        minor: 0,
-        patch: 0,
-        version: 'v0.0.0.00000000',
-        buildTime: buildTime
+      let patch = parseInt(commitCount, 10)
+      if (isNaN(patch)) {
+        console.warn('⚠️ Git commitCount 无效，使用 0')
+        patch = 0
       }
 
-      let versionData
+      // 读取根目录 version.json（只读 major/minor，不写回）
+      const rootVersionPath = path.resolve(__dirname, 'version.json')
+      let major = 0, minor = 0
       if (fs.existsSync(rootVersionPath)) {
         try {
           const raw = fs.readFileSync(rootVersionPath, 'utf-8')
-          versionData = JSON.parse(raw)
-          if (typeof versionData.major !== 'number') versionData.major = defaultData.major
-          if (typeof versionData.minor !== 'number') versionData.minor = defaultData.minor
-          if (typeof versionData.patch !== 'number') versionData.patch = defaultData.patch
+          const data = JSON.parse(raw)
+          major = typeof data.major === 'number' ? data.major : 0
+          minor = typeof data.minor === 'number' ? data.minor : 0
         } catch (e) {
-          console.warn('⚠️ 根目录 version.json 解析失败，使用默认配置', e)
-          versionData = { ...defaultData }
+          console.warn('⚠️ 读取 major/minor 失败，使用默认值',e)
         }
-      } else {
-        versionData = { ...defaultData }
       }
 
-      // 自增 patch
-      versionData.patch += 1
+      const fullVersion = `v${major}.${minor}.${patch}.${shortHash}`
 
-      // 生成 8 位十六进制哈希
-      let hash
-      try {
-        hash = crypto.randomBytes(4).toString('hex')
-      } catch (e) {
-        hash = Math.random().toString(16).slice(2, 10).padEnd(8, '0')
-      }
+      // ⚠️ 不再写回根目录 version.json，避免污染工作区
+      // 如果你必须写回，请确保该文件已被 .gitignore 忽略
 
-      const fullVersion = `v${versionData.major}.${versionData.minor}.${versionData.patch}.${hash}`
-
-
-      // 记录旧版本（用于打印）
-      const oldVersion = versionData.version || '无'
-      const oldBuildTime = versionData.buildTime || '无'
-
-      // 更新根目录数据
-      versionData.version = fullVersion
-      versionData.buildTime = buildTime
-      fs.writeFileSync(rootVersionPath, JSON.stringify(versionData, null, 2), 'utf-8')
-      console.log(`\n📁 根目录 version.json 已更新 (major=${versionData.major}, minor=${versionData.minor}, patch=${versionData.patch})`)
-
-      // ========== 2. 生成新的 dist/version.json（合并备份中的后端字段） ==========
-      const distDir = path.resolve(__dirname, 'dist')
-      if (!fs.existsSync(distDir)) {
-        fs.mkdirSync(distDir, { recursive: true })
-      }
-
-      // 准备前端版本字段
       const frontendFields = {
         frontVersion: fullVersion,
         frontBuildTime: buildTime
       }
 
-      // 最终要写入的对象：先复制备份中的内容（保留后端字段），再覆盖/添加前端字段
       let finalData = {}
       if (backupVersionData && typeof backupVersionData === 'object') {
         finalData = { ...backupVersionData }
       }
       Object.assign(finalData, frontendFields)
+      Object.assign(finalData, frontendFields)
 
+      // 写入 dist/version.json
+      const distDir = path.resolve(__dirname, 'dist')
+      if (!fs.existsSync(distDir)) fs.mkdirSync(distDir, { recursive: true })
       const distVersionPath = path.join(distDir, 'version.json')
       fs.writeFileSync(distVersionPath, JSON.stringify(finalData, null, 2), 'utf-8')
 
-      // ====================== 【最终修复】生成 dist/config/latest.json ======================
+      // 写入 dist/config/latest.json
       const configDir = path.resolve(__dirname, 'dist', 'config')
-      if (!fs.existsSync(configDir)) {
-        fs.mkdirSync(configDir, { recursive: true })
-      }
+      if (!fs.existsSync(configDir)) fs.mkdirSync(configDir, { recursive: true })
       const latestJsonPath = path.join(configDir, 'latest.json')
-
-      // 直接复用最终数据，无重复逻辑
-      const latestData = { ...finalData }
-      fs.writeFileSync(latestJsonPath, JSON.stringify(latestData, null, 2), 'utf-8')
-      // ====================== 【修复】结束 ======================
+      fs.writeFileSync(latestJsonPath, JSON.stringify(finalData, null, 2), 'utf-8')
 
       // 控制台输出
       console.log('\n📋 版本更新完成')
-      console.log(`frontVersion: ${oldVersion} --> ${fullVersion}`)
-      console.log(`frontBuildTime: ${oldBuildTime} --> ${buildTime}`)
+      console.log(`frontVersion: ${fullVersion}`)
+      console.log(`frontBuildTime: ${buildTime}`)
       console.log(`📁 dist/version.json 已生成`)
-      console.log(`📁 dist/config/latest.json 已生成\n`) // 新增日志
-    },
+      console.log(`📁 dist/config/latest.json 已生成\n`)
+    }
+
   }
 }
+
+
+
+
+
+
+
+
+
+
+
 
 export default defineConfig({
   build: {
@@ -159,17 +148,6 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
-    },
-  },
-  server: {
-    host: '0.0.0.0',
-    proxy: {
-      '/api': { target: 'http://l.test.cn:8999', changeOrigin: true },
-      '/p': {
-        target: 'http://l.test.cn:8999',
-        changeOrigin: true,
-        secure: false,
-      },
     },
   },
 })
