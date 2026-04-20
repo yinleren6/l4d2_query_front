@@ -132,7 +132,7 @@ const StreamingServerList = forwardRef<StreamingServerListRef, StreamingServerLi
         } else {
           console.log(`[${getTimestamp()}] 心跳 skipped, readyState=${ws.readyState}`);
         }
-      }, 10000);
+      }, 15000);
       ws.send(JSON.stringify({ type: "check_update" }));
       console.log(`[${getTimestamp()}] 发送 check_update`);
     };
@@ -141,7 +141,8 @@ const StreamingServerList = forwardRef<StreamingServerListRef, StreamingServerLi
       try {
         const message = JSON.parse(event.data);
         const { type, data } = message;
-        console.log(`[${getTimestamp()}] 收到消息 type=${type}, data=${JSON.stringify(data).substring(0, 200)}`);
+        const dataStr = data !== undefined ? JSON.stringify(data).substring(0, 200) : "undefined";
+        console.log(`[${getTimestamp()}] 收到消息 type=${type}, data=${dataStr}`);
 
         if (type === "order") {
           const order = data.order as string[];
@@ -201,6 +202,8 @@ const StreamingServerList = forwardRef<StreamingServerListRef, StreamingServerLi
           console.log(`[${getTimestamp()}] 收到 done, total=${data.total}`);
           setLoading(false);
           onLoadingChangeRef.current?.(false);
+        } else if (type === "keepalive") {
+          console.log(`[${getTimestamp()}] 收到 keepalive`);
         } else if (type === "error") {
           const errMsg = data?.error || "连接失败";
           console.error(`[${getTimestamp()}] 收到 error: ${errMsg}`);
