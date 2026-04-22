@@ -29,11 +29,15 @@ export default function AppVersionTab() {
       const configData = hasValidData
         ? dataRes.data
         : {
-            app_version: "0.0.0",
-            download_url: "",
-            last_update: "",
-            changelog: "",
+          app_version: "0.0.0",
+          updater_version: "",
+          last_update: "",
+          changelog: "",
+          download_url: "",
+          installer_download_url: "",
+          updater_download_url: "",
           };
+      console.log(configData);
       setFormData(configData);
       setOriginalData(configData);
       setSchema(schemaRes.data);
@@ -81,9 +85,13 @@ export default function AppVersionTab() {
     const trimmedData = deepTrim(rawFormData);
     const finalData = {
       ...trimmedData,
-      app_version: trimmedData["app_version"] || "0.0.0",
-      download_url: trimmedData["download_url"] || "",
+      app_version: trimmedData["app_version"] || "0",
+      updater_version: trimmedData["updater_version"] || "0",
+      last_update: trimmedData["last_update"] || "",
       changelog: trimmedData["changelog"] || "",
+      download_url: trimmedData["download_url"] || "",
+      installer_download_url: trimmedData["installer_download_url"] || "",
+      updater_download_url: trimmedData["updater_download_url"] || "",
     };
 
     if (originalData && isEqual(finalData, deepTrim(originalData))) {
