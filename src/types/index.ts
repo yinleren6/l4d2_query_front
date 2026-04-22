@@ -28,10 +28,13 @@ export interface ServerFormData {
 }
 
 export interface AppVersionFormData {
-  app_version: string
-  download_url: string
-  last_update: string
-  changelog: string
+  app_version: string;
+  updater_version?: string;
+  last_update?: string;
+  changelog?: string;
+  download_url?: string;
+  installer_download_url?: string;
+  updater_download_url?: string;
 }
 
 export interface LatestVersionInfo {

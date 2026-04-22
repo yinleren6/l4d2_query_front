@@ -34,6 +34,7 @@ export default function AppVersionTab() {
             last_update: "",
             changelog: "",
           };
+      console.log(configData);
       setFormData(configData);
       setOriginalData(configData);
       setSchema(schemaRes.data);
