@@ -25,20 +25,38 @@ export default function AppVersionTab() {
       setLoading(true);
       setError("");
       const [schemaRes, dataRes] = await Promise.all([request.get("/api/app-schema", { signal }), request.get("/api/get-app-config", { signal })]);
-      console.log('【真实接口返回】', dataRes);
-      const hasValidData = dataRes.data && typeof dataRes.data === "object" && "app_version" in dataRes.data;
-      const configData = hasValidData
-        ? dataRes.data
-        : {
-          app_version: "0.0.0",
-          updater_version: "",
-          last_update: "",
-          changelog: "",
-          download_url: "",
-          installer_download_url: "",
-          updater_download_url: "",
-          };
-      console.log(configData);
+
+      let responseData;
+      try {
+        // 解析后端返回的 JSON 字符串
+        responseData = JSON.parse(dataRes.data);
+      } catch (e) { console.error("加载版本配置失败:", e);
+        responseData = null;
+      }
+
+      console.log("解析后的数据:", responseData);
+
+      // 校验数据是否合法
+      const hasValidData = !!(
+        responseData &&
+        typeof responseData === "object" &&
+        responseData.app_version
+      );
+
+      // 默认配置
+      const defaultConfig = {
+        app_version: "0.0.0",
+        updater_version: "",
+        last_update: "",
+        changelog: "",
+        download_url: "",
+        installer_download_url: "",
+        updater_download_url: "",
+      };
+
+      // 赋值
+      const configData = hasValidData ? responseData : defaultConfig;
+
       setFormData(configData);
       setOriginalData(configData);
       setSchema(schemaRes.data);
