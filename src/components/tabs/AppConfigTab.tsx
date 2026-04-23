@@ -26,24 +26,34 @@ export default function AppVersionTab() {
       setError("");
       const [schemaRes, dataRes] = await Promise.all([request.get("/api/app-schema", { signal }), request.get("/api/get-app-config", { signal })]);
 
-      let responseData;
+      let responseData = null;
       try {
-        // 解析后端返回的 JSON 字符串
-        responseData = JSON.parse(dataRes.data);
-      } catch (e) { console.error("加载版本配置失败:", e);
+        const rawData = dataRes.data;
+
+        // 自动判断：是字符串就解析，是对象直接用
+        if (typeof rawData === 'string') {
+          // 先修复你那个少逗号的错误
+          const fixedJson = rawData.replace(/"\s*"\n/g, '",\n');
+          responseData = JSON.parse(fixedJson);
+        } else {
+          // 已经是对象，直接使用
+          responseData = rawData;
+        }
+      } catch (e) {
+        console.error("解析配置失败", e);
         responseData = null;
       }
 
-      console.log("解析后的数据:", responseData);
+      console.log("✅ 最终可用配置:", responseData);
 
-      // 校验数据是否合法
+      // 数据校验
       const hasValidData = !!(
         responseData &&
         typeof responseData === "object" &&
         responseData.app_version
       );
 
-      // 默认配置
+      // 默认兜底
       const defaultConfig = {
         app_version: "0.0.0",
         updater_version: "",
@@ -54,9 +64,7 @@ export default function AppVersionTab() {
         updater_download_url: "",
       };
 
-      // 赋值
       const configData = hasValidData ? responseData : defaultConfig;
-
       setFormData(configData);
       setOriginalData(configData);
       setSchema(schemaRes.data);
