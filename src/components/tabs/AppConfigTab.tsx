@@ -25,6 +25,7 @@ export default function AppVersionTab() {
       setLoading(true);
       setError("");
       const [schemaRes, dataRes] = await Promise.all([request.get("/api/app-schema", { signal }), request.get("/api/get-app-config", { signal })]);
+      console.log('【真实接口返回】', dataRes);
       const hasValidData = dataRes.data && typeof dataRes.data === "object" && "app_version" in dataRes.data;
       const configData = hasValidData
         ? dataRes.data
