@@ -26,34 +26,17 @@ export default function AppVersionTab() {
       setError("");
       const [schemaRes, dataRes] = await Promise.all([request.get("/api/app-schema", { signal }), request.get("/api/get-app-config", { signal })]);
 
-      let responseData = null;
-      try {
-        const rawData = dataRes.data;
+      const responseData = dataRes.data;
 
-        // 自动判断：是字符串就解析，是对象直接用
-        if (typeof rawData === 'string') {
-          // 先修复你那个少逗号的错误
-          const fixedJson = rawData.replace(/"\s*"\n/g, '",\n');
-          responseData = JSON.parse(fixedJson);
-        } else {
-          // 已经是对象，直接使用
-          responseData = rawData;
-        }
-      } catch (e) {
-        console.error("解析配置失败", e);
-        responseData = null;
-      }
+      console.log(" 接口返回正确数据：", responseData);
 
-      console.log("✅ 最终可用配置:", responseData);
-
-      // 数据校验
+      // 正常校验
       const hasValidData = !!(
         responseData &&
         typeof responseData === "object" &&
         responseData.app_version
       );
 
-      // 默认兜底
       const defaultConfig = {
         app_version: "0.0.0",
         updater_version: "",
