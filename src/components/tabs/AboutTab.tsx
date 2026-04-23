@@ -20,15 +20,19 @@ export default function AboutTab() {
 
   const fetchCurrentVersion = async () => {
     try {
-      const res = await request.get("/api/ok");
-      const data = res.data;
+      const frontResp = await fetch("/version.json");
+      const frontres = await frontResp.json();
+
+      const backendResp = await request.get("/api/ok");
+      const backendres = backendResp.data;
+
       setCurrent({
-        frontVersion: data.frontVersion || "未知",
-        frontBuildTime: data.frontBuildTime || "未知",
-        backendVersion: data.backendVersion || "未知",
-        backendBuildTime: data.backendBuildTime || "未知",
+        frontVersion: frontres.frontVersion || "未知",
+        frontBuildTime: frontres.frontBuildTime || "未知",
+        backendVersion: backendres.backendVersion || "未知",
+        backendBuildTime: backendres.backendBuildTime || "未知",
       });
-    } catch (err: any) {
+    } catch (err) {
       console.error("获取当前版本失败", err);
       toast.error("获取当前版本失败");
     }
@@ -48,8 +52,9 @@ export default function AboutTab() {
         message: data.message || "",
       });
       toast.success("版本信息已刷新");
-    } catch (err: any) {
-      toast.error(err.message || "检查更新失败");
+    } catch (err) {
+      console.error("检查更新失败", err);
+      toast.error("检查更新失败");
     } finally {
       setLoading(false);
     }
@@ -69,8 +74,9 @@ export default function AboutTab() {
       );
       toast.success("更新已触发，服务将重启");
       waitForServiceRecovery();
-    } catch (err: any) {
-      toast.error(err.message || "触发更新失败");
+    } catch (err) {
+      console.error("触发更新失败", err);
+      toast.error("触发更新失败");
       setUpdating(false);
     }
   };

@@ -28,7 +28,7 @@ export default function AppVersionTab() {
 
       const responseData = dataRes.data;
 
-      console.log(" 接口返回正确数据：", responseData);
+      // console.log(" 接口返回正确数据：", responseData);
 
       // 正常校验
       const hasValidData = !!(
