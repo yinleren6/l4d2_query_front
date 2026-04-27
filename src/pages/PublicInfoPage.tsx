@@ -369,7 +369,7 @@ export default function PublicServerInfo() {
         <div className="max-w-7xl mx-auto px-6 py-2">
           <div className="bg-white/70 dark:bg-slate-900/90 backdrop-blur rounded-lg p-3 text-center shadow-lg">
             <p className="text-sm text-slate-700 dark:text-slate-300">
-              萌ICP备20268604号
+              萌ICP备2026178604号
               <a href="https://github.com/yinleren6" className="hover:text-orange-500 transition-colors">
                 ©CCiallo
               </a>
