@@ -44,12 +44,12 @@ export default function AboutTab() {
       const res = await request.get("/api/admin/update/latest");
       const data = res.data;
       setLatest({
-        frontVersion: data.frontVersion || "",
-        frontBuildTime: data.frontBuildTime || "",
-        backendVersion: data.backendVersion || "",
-        backendBuildTime: data.backendBuildTime || "",
+        frontVersion: data.frontVersion || "0",
+        frontBuildTime: data.frontBuildTime || "0",
+        backendVersion: data.backendVersion || "0",
+        backendBuildTime: data.backendBuildTime || "0",
         force: data.force || false,
-        message: data.message || "",
+        message: data.message || "嘻嘻~",
       });
       toast.success("版本信息已刷新");
     } catch (err) {
@@ -119,13 +119,14 @@ export default function AboutTab() {
           {/* 当前版本 */}
           <div className="rounded-lg border p-4 space-y-2">
             <div className="font-medium text-sm text-muted-foreground">当前版本</div>
-            <div className="grid grid-cols-2 gap-2 text-sm">
+            <div className="grid grid-cols-1 gap-2 text-sm">
               <div>
                 前端：<code className="bg-muted px-1 rounded">{current?.frontVersion || "加载中..."}</code>
               </div>
               <div>
                 构建时间：<code className="bg-muted px-1 rounded">{current?.frontBuildTime || "加载中..."}</code>
               </div>
+              <br/>
               <div>
                 后端：<code className="bg-muted px-1 rounded">{current?.backendVersion || "加载中..."}</code>
               </div>

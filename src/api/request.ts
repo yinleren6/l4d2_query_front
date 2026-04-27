@@ -46,8 +46,8 @@ request.interceptors.response.use(
     const originalConfig = err.config
 
     if (err.response?.status !== 401 || originalConfig._retry) {
-      if (err.response?.status === 403) toast.error('无权限访问该功能')
-      else if (err.response?.status >= 500) toast.error('服务器错误')
+      if (err.response?.status === 403) toast.error('无权限访问该功能',err.response?.status)
+      else if (err.response?.status >= 500) toast.error('服务器错误',err.response?.status)
       return Promise.reject(err)
     }
 
