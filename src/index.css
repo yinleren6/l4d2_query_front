@@ -14,7 +14,7 @@
 }
 
 .animate-fade-slide {
-  animation: fadeSlideUp 0.3s ease-out;
+  animation: fadeSlideUp 0.3s ease-in-out;
 }
 
 @keyframes popBounce {
@@ -62,7 +62,7 @@
 }
 
 .animate-backdrop-blur {
-  animation: smoothBlur 1s ease-out 1s forwards;
+  animation: smoothBlur 1s ease-in-out 1s forwards;
 }
 
 @keyframes skeleton-shine {

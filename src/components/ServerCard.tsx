@@ -95,7 +95,7 @@ export default function ServerCard({ server, onJoin, onCopy, className = "" }: S
             className="w-full h-12 flex items-center justify-between text-xs text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 py-1 px-2 rounded-md bg-slate-100/50 hover:bg-slate-200/50 dark:hover:bg-slate-800/60 transition">
             <div className="flex flex-col px-3 py-1.5 overflow-hidden gap-1 w-full flex-1">
               <span className="text-left text-xs font-medium text-slate-700 dark:text-slate-200">玩家列表 ({playersCount})</span>
-              <div className="h-2 w-full bg-linear-to-r from-emerald-500 to-sky-500 rounded-full transition-all duration-500 ease-out" style={{ width: `${playersPercent}%` }} />
+              <div className="h-2 w-full bg-linear-to-r from-emerald-500 to-sky-500 rounded-full transition-all duration-500 ease-in-out" style={{ width: `${playersPercent}%` }} />
             </div>
             <div className="transition-transform duration-300 ease-in-out">
               <ChevronDown size={14} className={isExpanded ? "rotate-180" : ""} />

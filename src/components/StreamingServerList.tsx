@@ -54,7 +54,7 @@ const StreamingServerList = forwardRef<StreamingServerListRef, StreamingServerLi
     if (isAutoRefresh) {
       autoRefreshIntervalRef.current = window.setInterval(() => {
         if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
-          console.log(`[${getTimestamp()}] 发送自动刷新消息 (refresh)`);
+          // console.log(`[${getTimestamp()}] 发送自动刷新消息 (refresh)`);
           wsRef.current.send(JSON.stringify({ type: "refresh" }));
         }
       }, 15000);
@@ -95,7 +95,7 @@ const StreamingServerList = forwardRef<StreamingServerListRef, StreamingServerLi
     if (isRefreshing.current) return;
     if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
       isRefreshing.current = true;
-      console.log(`[${getTimestamp()}] 手动刷新 (refresh_btn + check_update)`);
+      // console.log(`[${getTimestamp()}] 手动刷新 (refresh_btn + check_update)`);
       wsRef.current.send(JSON.stringify({ type: "refresh_btn" }));
       wsRef.current.send(JSON.stringify({ type: "check_update" }));
       setTimeout(() => {
@@ -113,13 +113,13 @@ const StreamingServerList = forwardRef<StreamingServerListRef, StreamingServerLi
     if (token) {
       wsUrl += `?token=${encodeURIComponent(token)}`;
     }
-    console.log(`[${getTimestamp()}] 创建 WebSocket 连接: ${wsUrl}`);
+    // console.log(`[${getTimestamp()}] 创建 WebSocket 连接: ${wsUrl}`);
     const ws = new WebSocket(wsUrl);
     // eslint-disable-next-line react-hooks/immutability
     wsRef.current = ws;
 
     ws.onopen = () => {
-      console.log(`[${getTimestamp()}] WebSocket 连接已打开 (readyState=${ws.readyState})`);
+      // console.log(`[${getTimestamp()}] WebSocket 连接已打开 (readyState=${ws.readyState})`);
       toast.success("嘀嘀~电波对接成功！");
       reconnectAttempts.current = 0;
       setLoading(true);
@@ -127,26 +127,26 @@ const StreamingServerList = forwardRef<StreamingServerListRef, StreamingServerLi
       if (heartbeatIntervalRef.current) clearInterval(heartbeatIntervalRef.current);
       heartbeatIntervalRef.current = window.setInterval(() => {
         if (ws.readyState === WebSocket.OPEN) {
-          console.log(`[${getTimestamp()}] 发送心跳 ping`);
+          // console.log(`[${getTimestamp()}] 发送心跳 ping`);
           ws.send(JSON.stringify({ type: "ping" }));
         } else {
-          console.log(`[${getTimestamp()}] 心跳 skipped, readyState=${ws.readyState}`);
+          // console.log(`[${getTimestamp()}] 心跳 skipped, readyState=${ws.readyState}`);
         }
       }, 15000);
       ws.send(JSON.stringify({ type: "check_update" }));
-      console.log(`[${getTimestamp()}] 发送 check_update`);
+      // console.log(`[${getTimestamp()}] 发送 check_update`);
     };
 
     ws.onmessage = (event) => {
       try {
         const message = JSON.parse(event.data);
         const { type, data } = message;
-        const dataStr = data !== undefined ? JSON.stringify(data).substring(0, 200) : "undefined";
-        console.log(`[${getTimestamp()}] 收到消息 type=${type}, data=${dataStr}`);
+        // const dataStr = data !== undefined ? JSON.stringify(data).substring(0, 200) : "undefined";
+        // console.log(`[${getTimestamp()}] 收到消息 type=${type}, data=${dataStr}`);
 
         if (type === "order") {
           const order = data.order as string[];
-          console.log(`[${getTimestamp()}] 收到 order, 数量=${order.length}`);
+          // console.log(`[${getTimestamp()}] 收到 order, 数量=${order.length}`);
           setServerOrder(order);
           setServersMap((prev) => {
             const newMap = { ...prev };
@@ -169,7 +169,7 @@ const StreamingServerList = forwardRef<StreamingServerListRef, StreamingServerLi
                   setServersMap((prevMap) => {
                     const target = prevMap[addr];
                     if (target && target.ServerName === "加载中...") {
-                      console.log(`[${getTimestamp()}] 地址 ${addr} 查询超时，标记为失败`);
+                      // console.log(`[${getTimestamp()}] 地址 ${addr} 查询超时，标记为失败`);
                       return {
                         ...prevMap,
                         [addr]: {
@@ -189,7 +189,7 @@ const StreamingServerList = forwardRef<StreamingServerListRef, StreamingServerLi
           });
         } else if (type === "server") {
           const serverData = data as ServerInfo;
-          console.log(`[${getTimestamp()}] 收到 server: ${serverData.ServerAddress} (${serverData.ServerName})`);
+          // console.log(`[${getTimestamp()}] 收到 server: ${serverData.ServerAddress} (${serverData.ServerName})`);
           if (pendingTimeoutsRef.current[serverData.ServerAddress]) {
             clearTimeout(pendingTimeoutsRef.current[serverData.ServerAddress]);
             delete pendingTimeoutsRef.current[serverData.ServerAddress];
@@ -199,22 +199,22 @@ const StreamingServerList = forwardRef<StreamingServerListRef, StreamingServerLi
             [serverData.ServerAddress]: serverData,
           }));
         } else if (type === "done") {
-          console.log(`[${getTimestamp()}] 收到 done, total=${data.total}`);
+          // console.log(`[${getTimestamp()}] 收到 done, total=${data.total}`);
           setLoading(false);
           onLoadingChangeRef.current?.(false);
         } else if (type === "keepalive") {
-          console.log(`[${getTimestamp()}] 收到 keepalive`);
+          // console.log(`[${getTimestamp()}] 收到 keepalive`);
         } else if (type === "error") {
           const errMsg = data?.error || "连接失败";
-          console.error(`[${getTimestamp()}] 收到 error: ${errMsg}`);
+          // console.error(`[${getTimestamp()}] 收到 error: ${errMsg}`);
           setError(errMsg);
           onErrorRef.current?.(errMsg);
           setLoading(false);
           onLoadingChangeRef.current?.(false);
         } else if (type === "pong") {
-          console.log(`[${getTimestamp()}] 收到 pong`);
+          // console.log(`[${getTimestamp()}] 收到 pong`);
         } else if (type === "version_update") {
-          console.log(`[${getTimestamp()}] 收到 version_update`, data);
+          // console.log(`[${getTimestamp()}] 收到 version_update`, data);
           onVersionUpdate?.(data);
         }
       } catch (e) {
@@ -231,8 +231,9 @@ const StreamingServerList = forwardRef<StreamingServerListRef, StreamingServerLi
       onLoadingChangeRef.current?.(false);
     };
 
-    ws.onclose = (closeEvent) => {
-      console.log(`[${getTimestamp()}] WebSocket 关闭: code=${closeEvent.code}, reason="${closeEvent.reason}", wasClean=${closeEvent.wasClean}, readyState=${ws.readyState}`);
+    // ws.onclose = (closeEvent) => {
+    ws.onclose = () => {
+      // console.log(`[${getTimestamp()}] WebSocket 关闭: code=${closeEvent.code}, reason="${closeEvent.reason}", wasClean=${closeEvent.wasClean}, readyState=${ws.readyState}`);
       toast.error("嘀嘀… 通讯中断，正在努力重新对接电波中✨");
       if (heartbeatIntervalRef.current) {
         clearInterval(heartbeatIntervalRef.current);
@@ -241,10 +242,10 @@ const StreamingServerList = forwardRef<StreamingServerListRef, StreamingServerLi
       if (isAutoRefresh && mountedRef.current) {
         const delay = Math.min(30000, 1000 * Math.pow(2, reconnectAttempts.current));
         reconnectAttempts.current++;
-        console.log(`[${getTimestamp()}] 计划 ${delay}ms 后重连 (尝试次数=${reconnectAttempts.current})`);
+        // console.log(`[${getTimestamp()}] 计划 ${delay}ms 后重连 (尝试次数=${reconnectAttempts.current})`);
         reconnectTimerRef.current = window.setTimeout(() => {
           if (mountedRef.current && isAutoRefresh) {
-            console.log(`[${getTimestamp()}] 触发重连 (connectionKey=${connectionKey + 1})`);
+            // console.log(`[${getTimestamp()}] 触发重连 (connectionKey=${connectionKey + 1})`);
             setConnectionKey((k) => k + 1);
           }
         }, delay);
@@ -252,7 +253,7 @@ const StreamingServerList = forwardRef<StreamingServerListRef, StreamingServerLi
     };
 
     return () => {
-      console.log(`[${getTimestamp()}] 清理 WebSocket 连接`);
+      // console.log(`[${getTimestamp()}] 清理 WebSocket 连接`);
       if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
         wsRef.current.close(1000, "Component unmount");
       }

@@ -103,15 +103,15 @@ export default function ServerConfigTab() {
     setSubmitting(true);
     try {
       let response;
-      console.log(user?.role === "admin");
-      console.log(currentGroupId !== user?.id);
-      console.log(user?.role === "admin" && currentGroupId !== user.id);
+      // console.log(user?.role === "admin");
+      // console.log(currentGroupId !== user?.id);
+      // console.log(user?.role === "admin" && currentGroupId !== user.id);
 
       if (user?.role === "admin" && currentGroupId !== user.id) {
-        console.log("分支 1 ");
+        // console.log("分支 1 ");
         response = await request.post(`/api/admin/config/${currentGroupId}`, finalData);
       } else {
-        console.log("分支 2 ");
+        // console.log("分支 2 ");
         response = await request.post("/api/save-user-config", finalData);
       }
       const savedData = response.data;

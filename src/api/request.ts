@@ -31,7 +31,7 @@ request.interceptors.request.use(
           localStorage.removeItem('user')
         }
       } catch (e) {
-        console.error('Token 解析失败', e)
+        // console.error('Token 解析失败', e)
         localStorage.removeItem('user')
       }
     }
