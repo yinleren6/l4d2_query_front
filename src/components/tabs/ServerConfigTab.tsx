@@ -8,9 +8,10 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ServerFormData, FormSchema } from "@/types";
 import { toast } from "sonner";
-import { deepTrim, isEqual } from "@/lib/utils";
+import { deepTrim, isEqual, timeAgo, formatAbsoluteTime } from "@/lib/utils";
 import { useAuthStore } from "@/store/AuthState";
 import LoadingGif from "@/components/ui/loadinggif";
+
 export default function ServerConfigTab() {
   const { user } = useAuthStore();
   const [searchParams] = useSearchParams();
@@ -23,11 +24,15 @@ export default function ServerConfigTab() {
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
+  const lastUpdateTimestamp = formData?.last_update;
+  const relativeTime = lastUpdateTimestamp ? timeAgo(lastUpdateTimestamp) : "";
+  const absoluteTime = lastUpdateTimestamp ? formatAbsoluteTime(lastUpdateTimestamp) : "";
   const [users, setUsers] = useState<
     {
       user_id: string;
     }[]
   >([]);
+
   const [currentGroupId, setCurrentGroupId] = useState<string>(() => {
     if (user?.role === "admin") return groupParam || "";
     return user?.id || "";
@@ -90,11 +95,13 @@ export default function ServerConfigTab() {
   const handleSubmit = async ({ formData: rawFormData }: { formData?: ServerFormData }) => {
     if (!rawFormData || submitting) return;
     const trimmedData = deepTrim(rawFormData);
+
+    const { last_update, ...restData } = trimmedData;
+
     const finalData = {
-      ...trimmedData,
-      version: trimmedData["version"] || "0",
-      last_update: "",
-      server_list: trimmedData["server_list"] || [],
+      ...restData,
+      version: restData["version"] || "0",
+      server_list: restData["server_list"] || [],
     };
     if (originalData && isEqual(finalData, deepTrim(originalData))) {
       toast.info("内容无变化，无需保存");
@@ -103,15 +110,9 @@ export default function ServerConfigTab() {
     setSubmitting(true);
     try {
       let response;
-      // console.log(user?.role === "admin");
-      // console.log(currentGroupId !== user?.id);
-      // console.log(user?.role === "admin" && currentGroupId !== user.id);
-
       if (user?.role === "admin" && currentGroupId !== user.id) {
-        // console.log("分支 1 ");
         response = await request.post(`/api/admin/config/${currentGroupId}`, finalData);
       } else {
-        // console.log("分支 2 ");
         response = await request.post("/api/save-user-config", finalData);
       }
       const savedData = response.data;
@@ -156,7 +157,18 @@ export default function ServerConfigTab() {
           </select>
         </div>
       )}
-      <h2 className="text-lg font-semibold mb-4">服务器列表配置 {currentGroupId && currentGroupId !== user?.id ? `- ${currentGroupId}` : ""}</h2>
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="text-lg font-semibold">服务器列表配置 {currentGroupId && currentGroupId !== user?.id ? `- ${currentGroupId}` : ""}</h2>
+        {lastUpdateTimestamp && (
+          <div
+            className="text-sm text-muted-foreground cursor-help border-b border-dotted"
+            title={absoluteTime}
+          >
+            最后更新：{relativeTime}
+          </div>
+        )}
+        {!lastUpdateTimestamp && !loading && <div className="text-sm text-muted-foreground">最后更新：暂无</div>}
+      </div>
       <Form schema={schema} formData={formData} validator={validator} onSubmit={({ formData }: { formData?: ServerFormData }) => handleSubmit({ formData })} liveValidate>
         <div className="mt-4">
           <Button type="submit" className="w-full sm:w-auto" disabled={submitting}>

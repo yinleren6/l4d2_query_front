@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { useParams } from "react-router-dom";
 import request from "@/api/request";
-
+import { timeAgo, formatAbsoluteTime } from "@/lib/utils";
 import type { ServerInfo } from "@/components/ServerCard";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -190,12 +190,26 @@ export default function PublicServerInfo() {
     setTotalMaxPlayerCount(servers.reduce((sum, s) => sum + (s.MaxPlayers || 0), 0));
     setErrorStats("");
   };
-
-  useEffect(() => {
-    if (groupID) {
-      request.post("/api/public/record", { group_ID: groupID }).catch((err) => console.warn("api访问失败", err));
+  const [configLastUpdate, setConfigLastUpdate] = useState<number | null>(null);
+  const fetchConfigLastUpdate = useCallback(async () => {
+    if (!groupID) return;
+    try {
+      const res = await request.get("/api/get-server-config", { params: { groupID } });
+      const lastUpdate = res.data?.last_update;
+      if (typeof lastUpdate === "number") {
+        setConfigLastUpdate(lastUpdate);
+      } else {
+        setConfigLastUpdate(null);
+      }
+    } catch (err) {
+      console.warn("获取配置更新时间失败", err);
+      // 静默失败，不影响主功能
     }
   }, [groupID]);
+  // 挂载时获取
+  useEffect(() => {
+    fetchConfigLastUpdate();
+  }, [fetchConfigLastUpdate]);
 
   useEffect(() => {
     const loadAllImages = async () => {
@@ -373,7 +387,14 @@ export default function PublicServerInfo() {
               <a href="https://github.com/yinleren6" className="hover:text-orange-500 transition-colors">
                 ©CCiallo
               </a>
-              {new Date().getFullYear()} Powered by React
+              {new Date().getFullYear()}
+              {configLastUpdate !== null ? (
+                <span className="ml-1 cursor-help border-b border-dotted" title={formatAbsoluteTime(configLastUpdate)}>
+                  更新于 {timeAgo(configLastUpdate)}
+                </span>
+              ) : (
+                <span className="ml-1">更新于 正在获取...</span>
+              )}
             </p>
           </div>
         </div>

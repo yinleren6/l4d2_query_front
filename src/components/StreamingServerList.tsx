@@ -213,10 +213,9 @@ const StreamingServerList = forwardRef<StreamingServerListRef, StreamingServerLi
           onLoadingChangeRef.current?.(false);
         } else if (type === "pong") {
           // console.log(`[${getTimestamp()}] 收到 pong`);
-        } else if (type === "version_update") {
-          // console.log(`[${getTimestamp()}] 收到 version_update`, data);
-          onVersionUpdate?.(data);
-        }
+        }else if (type === "version_update") {
+            onVersionUpdate?.(data);
+          }
       } catch (e) {
         console.error(`[${getTimestamp()}] 消息解析失败:`, e, "原始数据:", event.data);
       }
@@ -232,7 +231,12 @@ const StreamingServerList = forwardRef<StreamingServerListRef, StreamingServerLi
     };
 
     // ws.onclose = (closeEvent) => {
-    ws.onclose = () => {
+    ws.onclose = (event) => {
+      console.error(`[${getTimestamp()}] WebSocket 已关闭`);
+      console.error(`关闭码 (code): ${event.code}`); // 关键：错误码
+      console.error(`关闭原因 (reason): ${event.reason}`); // 关键：错误描述
+      console.error(`是否干净关闭: ${event.wasClean}`);
+      console.error(`当前连接状态: ${ws.readyState}`);
       // console.log(`[${getTimestamp()}] WebSocket 关闭: code=${closeEvent.code}, reason="${closeEvent.reason}", wasClean=${closeEvent.wasClean}, readyState=${ws.readyState}`);
       toast.error("嘀嘀… 通讯中断，正在努力重新对接电波中✨");
       if (heartbeatIntervalRef.current) {

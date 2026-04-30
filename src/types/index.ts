@@ -22,7 +22,7 @@ export interface ServerItem {
 
 export interface ServerFormData {
   version: number
-  last_update: string
+  last_update: number
   changelog: string
   server_list: ServerItem[]
 }
